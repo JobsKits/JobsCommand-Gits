@@ -212,7 +212,7 @@ process_repo() {
   untrack_runtime_paths "$repo"
 }
 
-main() {
+run_main_flow() {
   show_readme_and_wait
   ensure_git_repo
 
@@ -231,6 +231,11 @@ main() {
 
   success_echo "处理完成。日志：${LOG_FILE}"
   note_echo "下一步建议执行：git status --short；子仓可用 git -C '子仓路径' status --short 检查。"
+}
+
+main() {
+  # 主入口只负责委托完整业务流程，复杂逻辑统一下沉。
+  run_main_flow "$@"
 }
 
 main "$@"

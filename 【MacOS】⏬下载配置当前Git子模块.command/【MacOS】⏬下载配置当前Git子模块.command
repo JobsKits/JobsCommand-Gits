@@ -10,19 +10,33 @@ SCRIPT_BASENAME="$(basename "$0" | sed 's/\.[^.]*$//')"
 LOG_FILE="/tmp/${SCRIPT_BASENAME}.log"
 : > "$LOG_FILE"
 
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 log()            { echo -e "$1" | tee -a "$LOG_FILE"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 color_echo()     { log "\033[1;32m$1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 info_echo()      { log "\033[1;34mℹ $1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 success_echo()   { log "\033[1;32m✔ $1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 warn_echo()      { log "\033[1;33m⚠ $1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 warm_echo()      { log "\033[1;33m$1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 note_echo()      { log "\033[1;35m➤ $1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 error_echo()     { log "\033[1;31m✖ $1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 err_echo()       { log "\033[1;31m$1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 debug_echo()     { log "\033[1;35m🐞 $1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 highlight_echo() { log "\033[1;36m🔹 $1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 gray_echo()      { log "\033[0;90m$1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 bold_echo()      { log "\033[1m$1\033[0m"; }
+# 按当前输出级别记录终端信息，并同步写入脚本日志。
 underline_echo() { log "\033[4m$1\033[0m"; }
 
 # ============================= 标准工具函数 =============================
@@ -30,6 +44,7 @@ get_cpu_arch() {
   [[ "$(uname -m)" == "arm64" ]] && echo "arm64" || echo "x86_64"
 }
 
+# 封装 abs_path 对应的独立处理逻辑。
 abs_path() {
   local p="$1"
   [[ -z "$p" ]] && return 1
@@ -44,6 +59,7 @@ abs_path() {
   fi
 }
 
+# 收集并校验用户输入，决定后续执行路径。
 ask_run() {
   echo ""
   note_echo "👉 $1"
@@ -53,6 +69,7 @@ ask_run() {
   [[ -n "$input" ]]
 }
 
+# 收集并校验用户输入，决定后续执行路径。
 confirm_yes() {
   echo ""
   warn_echo "⚠ $1"
@@ -62,6 +79,7 @@ confirm_yes() {
   [[ "$input" == "YES" ]]
 }
 
+# 封装 inject_shellenv_block 对应的独立处理逻辑。
 inject_shellenv_block() {
   local profile_file="$1"
   local shellenv_cmd="$2"
@@ -84,6 +102,7 @@ inject_shellenv_block() {
   eval "$shellenv_cmd" || true
 }
 
+# 封装 activate_homebrew_shellenv 对应的独立处理逻辑。
 activate_homebrew_shellenv() {
   local arch="$(get_cpu_arch)"
   local brew_bin=""
@@ -107,6 +126,7 @@ activate_homebrew_shellenv() {
   eval "$(${brew_bin} shellenv)"
 }
 
+# 执行已经拆分完成的独立业务步骤。
 run_brew_health_update() {
   info_echo "正在执行 Homebrew 健康更新..."
   brew update  || { error_echo "brew update 失败"; return 1; }
@@ -117,6 +137,7 @@ run_brew_health_update() {
   success_echo "Homebrew 健康更新完成"
 }
 
+# 执行对应的环境配置或同步处理。
 install_homebrew() {
   local arch="$(get_cpu_arch)"
   local brew_bin=""
@@ -144,6 +165,7 @@ install_homebrew() {
   fi
 }
 
+# 封装 brew_install_or_upgrade 对应的独立处理逻辑。
 brew_install_or_upgrade() {
   local formula="$1"
   [[ -z "$formula" ]] && return 1
@@ -163,6 +185,7 @@ brew_install_or_upgrade() {
   fi
 }
 
+# 展示脚本用途和影响范围，并在执行前等待用户确认。
 show_readme_and_wait() {
   clear
   local readme_path="${SCRIPT_DIR}/README.md"
@@ -177,6 +200,7 @@ show_readme_and_wait() {
   read "?👉 请先阅读上面的自述文件，按回车继续执行，或按 Ctrl+C 取消..."
 }
 
+# 执行已经拆分完成的独立业务步骤。
 run_original_logic() {
   # ============================= 原脚本业务逻辑区 =============================
   emulate -R zsh
@@ -251,12 +275,18 @@ run_original_logic() {
 
   # ============================== 输出工具 ==============================
   log()          { printf '%s\n' "$1" | tee -a "$LOG_FILE"; }
+  # 按当前输出级别记录终端信息，并同步写入脚本日志。
   info_echo()    { log "ℹ️  $*"; }
+  # 按当前输出级别记录终端信息，并同步写入脚本日志。
   success_echo() { log "✅ $*"; }
+  # 按当前输出级别记录终端信息，并同步写入脚本日志。
   warn_echo()    { log "⚠️  $*"; }
+  # 按当前输出级别记录终端信息，并同步写入脚本日志。
   error_echo()   { printf '%s\n' "❌ $*" >&2; printf '%s\n' "❌ $*" >> "$LOG_FILE"; }
+  # 按当前输出级别记录终端信息，并同步写入脚本日志。
   note_echo()    { log "📝 $*"; }
 
+  # 执行已经拆分完成的独立业务步骤。
   run_cmd() {
     if [[ "$DRY_RUN" == "1" ]]; then
       note_echo "[DRY-RUN] $*"
@@ -265,10 +295,12 @@ run_original_logic() {
     fi
   }
 
+  # 封装 trim_string 对应的独立处理逻辑。
   trim_string() {
     printf '%s' "$1" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//'
   }
 
+  # 封装 preview_safe_text 对应的独立处理逻辑。
   preview_safe_text() {
     # 只处理 fzf preview 展示层：去掉 U+FE0F，避免 macOS Terminal/fzf 对 emoji 宽度重绘错位。
     # 不改变真实目录名、.gitmodules、Git 子模块路径。
@@ -280,6 +312,7 @@ run_original_logic() {
     fi
   }
 
+  # 解析并返回后续流程需要的目标信息。
   get_ncpu() {
     if command -v sysctl >/dev/null 2>&1; then
       sysctl -n hw.ncpu 2>/dev/null || echo 1
@@ -287,15 +320,18 @@ run_original_logic() {
       echo 1
     fi
   }
+  # 解析并返回后续流程需要的目标信息。
   get_cpu_arch() {
     [[ "$(uname -m)" == "arm64" ]] && echo "arm64" || echo "x86_64"
   }
 
+  # 封装 cd_to_script_dir 对应的独立处理逻辑。
   cd_to_script_dir() {
     cd "$SCRIPT_DIR"
     info_echo "当前工作目录已切换到脚本所在目录：$(pwd)"
   }
 
+  # 封装 contains_item 对应的独立处理逻辑。
   contains_item() {
     local needle="$1"
     shift || true
@@ -341,17 +377,20 @@ run_original_logic() {
       "$repo"
   }
 
+  # 封装 entry_path 对应的独立处理逻辑。
   entry_path() {
     local entry="$1"
     printf '%s\n' "${entry%%|*}"
   }
 
+  # 封装 entry_page 对应的独立处理逻辑。
   entry_page() {
     local entry="$1"
     local rest="${entry#*|}"
     printf '%s\n' "${rest%%|*}"
   }
 
+  # 封装 entry_https 对应的独立处理逻辑。
   entry_https() {
     local entry="$1"
     local rest="${entry#*|}"
@@ -359,6 +398,7 @@ run_original_logic() {
     printf '%s\n' "${rest%%|*}"
   }
 
+  # 封装 entry_ssh 对应的独立处理逻辑。
   entry_ssh() {
     local entry="$1"
     local rest="${entry#*|}"
@@ -367,6 +407,7 @@ run_original_logic() {
     printf '%s\n' "${rest%%|*}"
   }
 
+  # 封装 entry_repo 对应的独立处理逻辑。
   entry_repo() {
     local entry="$1"
     local rest="${entry#*|}"
@@ -376,6 +417,7 @@ run_original_logic() {
     printf '%s\n' "$rest"
   }
 
+  # 解析并返回后续流程需要的目标信息。
   get_entry_by_path() {
     local target="$1"
     local entry=""
@@ -390,30 +432,35 @@ run_original_logic() {
     return 1
   }
 
+  # 封装 repo_page_by_path 对应的独立处理逻辑。
   repo_page_by_path() {
     local entry=""
     entry="$(get_entry_by_path "$1")" || return 1
     entry_page "$entry"
   }
 
+  # 封装 repo_https_by_path 对应的独立处理逻辑。
   repo_https_by_path() {
     local entry=""
     entry="$(get_entry_by_path "$1")" || return 1
     entry_https "$entry"
   }
 
+  # 封装 repo_ssh_by_path 对应的独立处理逻辑。
   repo_ssh_by_path() {
     local entry=""
     entry="$(get_entry_by_path "$1")" || return 1
     entry_ssh "$entry"
   }
 
+  # 封装 repo_name_by_path 对应的独立处理逻辑。
   repo_name_by_path() {
     local entry=""
     entry="$(get_entry_by_path "$1")" || return 1
     entry_repo "$entry"
   }
 
+  # 检查当前运行条件是否满足后续流程要求。
   validate_local_path() {
     local local_path="$1"
 
@@ -424,6 +471,7 @@ run_original_logic() {
     return 0
   }
 
+  # 封装 load_configured_submodules 对应的独立处理逻辑。
   load_configured_submodules() {
     SUBMODULE_ENTRIES=()
     CONFIG_PATHS=()
@@ -479,6 +527,7 @@ run_original_logic() {
     done
   }
 
+  # 封装 append_runtime_submodule 对应的独立处理逻辑。
   append_runtime_submodule() {
     local page_url="$1"
     local https_url="$2"
@@ -522,6 +571,7 @@ run_original_logic() {
 
     return 1
   }
+  # 封装 inject_shellenv_block 对应的独立处理逻辑。
   inject_shellenv_block() {
     local profile_file="$1"
     local shellenv_cmd="$2"
@@ -543,6 +593,7 @@ run_original_logic() {
     fi
     eval "$shellenv_cmd" || true
   }
+  # 执行对应的环境配置或同步处理。
   install_homebrew() {
     local arch="$(get_cpu_arch)"
     local shell_name="${SHELL##*/}"
@@ -586,6 +637,7 @@ run_original_logic() {
     fi
   }
 
+  # 检查当前运行条件是否满足后续流程要求。
   ensure_homebrew_healthy() {
     local brew_bin=""
 
@@ -628,6 +680,7 @@ run_original_logic() {
     fi
   }
 
+  # 检查当前运行条件是否满足后续流程要求。
   ensure_fzf_healthy() {
     if command -v fzf >/dev/null 2>&1 && fzf --version >/dev/null 2>&1; then
       success_echo "fzf 自检通过：$(fzf --version | head -n 1)"
@@ -670,6 +723,7 @@ run_original_logic() {
     git -c core.quotepath=false status >/dev/null
   }
 
+  # 检查当前运行条件是否满足后续流程要求。
   ensure_git_remote() {
     local remote_name="${1:-$REMOTE_NAME}"
 
@@ -699,6 +753,7 @@ run_original_logic() {
     done
   }
 
+  # 解析并返回后续流程需要的目标信息。
   detect_git_url_style() {
     if [[ "$GIT_URL_STYLE" == "ssh" || "$GIT_URL_STYLE" == "https" ]]; then
       printf '%s\n' "$GIT_URL_STYLE"
@@ -715,6 +770,7 @@ run_original_logic() {
     esac
   }
 
+  # 封装 clone_url_for_path 对应的独立处理逻辑。
   clone_url_for_path() {
     local submodule_path="$1"
     local style=""
@@ -727,10 +783,12 @@ run_original_logic() {
     fi
   }
 
+  # 封装 parent_has_uncommitted_changes 对应的独立处理逻辑。
   parent_has_uncommitted_changes() {
     [[ -n "$(git -c core.quotepath=false status --porcelain)" ]]
   }
 
+  # 检查当前运行条件是否满足后续流程要求。
   ensure_parent_branch() {
     local b="$SUBMODULE_BRANCH"
     local current=""
@@ -753,6 +811,7 @@ run_original_logic() {
     fi
   }
 
+  # 封装 parent_pull_rebase 对应的独立处理逻辑。
   parent_pull_rebase() {
     local b=""
     b="$(git rev-parse --abbrev-ref HEAD)"
@@ -769,6 +828,7 @@ run_original_logic() {
     fi
   }
 
+  # 封装 parent_push_if_needed 对应的独立处理逻辑。
   parent_push_if_needed() {
     if [[ "$AUTO_PARENT_PUSH" != "1" ]]; then
       note_echo "AUTO_PARENT_PUSH=0，已跳过父仓 push"
@@ -789,12 +849,14 @@ run_original_logic() {
     [[ -n "$branch" ]] && printf '%s\n' "$branch"
   }
 
+  # 封装 remote_branch_exists 对应的独立处理逻辑。
   remote_branch_exists() {
     local url="$1"
     local branch="$2"
     git ls-remote --exit-code --heads "$url" "$branch" >/dev/null 2>&1
   }
 
+  # 封装 remote_branch_for_url 对应的独立处理逻辑。
   remote_branch_for_url() {
     local url="$1"
     local preferred="$2"
@@ -821,11 +883,13 @@ run_original_logic() {
     git -C "$submodule_path" rev-parse --is-inside-work-tree >/dev/null 2>&1
   }
 
+  # 检查当前运行条件是否满足后续流程要求。
   is_gitlink_registered() {
     local submodule_path="$1"
     git ls-files --stage -- "$submodule_path" 2>/dev/null | awk '{ if ($1 == "160000") found=1 } END { exit found ? 0 : 1 }'
   }
 
+  # 检查当前运行条件是否满足后续流程要求。
   is_dir_empty() {
     local submodule_path="$1"
     [[ -d "$submodule_path" ]] || return 1
@@ -834,6 +898,7 @@ run_original_logic() {
     [[ ${#entries} -eq 0 ]]
   }
 
+  # 封装 assert_clean_submodule 对应的独立处理逻辑。
   assert_clean_submodule() {
     local submodule_path="$1"
     local action="$2"
@@ -863,6 +928,7 @@ run_original_logic() {
     warn_echo ".gitmodules 当前不存在，已按 SUBMODULE_REPO_URLS 重建空文件，后续会逐项查漏补缺"
   }
 
+  # 解析并返回后续流程需要的目标信息。
   find_gitmodules_section_by_path() {
     local target_path="$1"
     [[ -f .gitmodules ]] || return 1
@@ -883,6 +949,7 @@ run_original_logic() {
     return 1
   }
 
+  # 封装 collect_gitmodules_paths 对应的独立处理逻辑。
   collect_gitmodules_paths() {
     [[ -f .gitmodules ]] || return 0
 
@@ -892,6 +959,7 @@ run_original_logic() {
     done < <(git config -f .gitmodules --name-only --get-regexp '^submodule\..*\.path$' 2>/dev/null || true)
   }
 
+  # 封装 gitmodules_preferred_style 对应的独立处理逻辑。
   gitmodules_preferred_style() {
     if [[ -f .gitmodules ]]; then
       local key=""
@@ -909,6 +977,7 @@ run_original_logic() {
     printf '%s\n' "https"
   }
 
+  # 封装 gitmodules_url_for_path 对应的独立处理逻辑。
   gitmodules_url_for_path() {
     local submodule_path="$1"
     local style=""
@@ -921,6 +990,7 @@ run_original_logic() {
     fi
   }
 
+  # 封装 gitmodules_url_points_to_config_repo 对应的独立处理逻辑。
   gitmodules_url_points_to_config_repo() {
     local actual_url="$1"
     local submodule_path="$2"
@@ -935,6 +1005,7 @@ run_original_logic() {
     [[ "$actual_page" == "$expected_page" ]]
   }
 
+  # 执行对应的清理操作，并保留必要的安全检查。
   remove_gitmodules_entry_by_path() {
     local submodule_path="$1"
     local section=""
@@ -947,6 +1018,7 @@ run_original_logic() {
     fi
   }
 
+  # 检查当前运行条件是否满足后续流程要求。
   ensure_gitmodules_entry() {
     local submodule_path="$1"
     ensure_gitmodules_file_exists
@@ -995,6 +1067,7 @@ run_original_logic() {
     fi
   }
 
+  # 封装 prune_unconfigured_gitmodules 对应的独立处理逻辑。
   prune_unconfigured_gitmodules() {
     [[ "$PRUNE_STALE_GITMODULES" == "1" ]] || return 0
     [[ -f .gitmodules ]] || return 0
@@ -1026,6 +1099,7 @@ run_original_logic() {
     done < <(collect_gitmodules_paths)
   }
 
+  # 封装 reconcile_gitmodules_with_config_once 对应的独立处理逻辑。
   reconcile_gitmodules_with_config_once() {
     if [[ "$GITMODULES_RECONCILED" == "1" ]]; then
       info_echo ".gitmodules 本轮已完成查漏补缺，跳过重复自检"
@@ -1062,6 +1136,7 @@ run_original_logic() {
     done
   }
 
+  # 封装 collect_existing_child_git_dirs 对应的独立处理逻辑。
   collect_existing_child_git_dirs() {
     local d=""
     for d in ./*(N/); do
@@ -1073,6 +1148,7 @@ run_original_logic() {
     done
   }
 
+  # 封装 collect_full_delete_targets 对应的独立处理逻辑。
   collect_full_delete_targets() {
     {
       local p=""
@@ -1085,6 +1161,7 @@ run_original_logic() {
     } | unique_paths_from_stdin
   }
 
+  # 执行对应的清理操作，并保留必要的安全检查。
   remove_worktree_dir_safely() {
     local submodule_path="$1"
 
@@ -1118,6 +1195,7 @@ run_original_logic() {
     # 全量同步只是刷新工作区目录；.gitmodules 由 reconcile_gitmodules_with_config_once 负责查漏补缺。
   }
 
+  # 封装 clone_submodule_worktree 对应的独立处理逻辑。
   clone_submodule_worktree() {
     local submodule_path="$1"
     local url=""
@@ -1149,6 +1227,7 @@ run_original_logic() {
     fi
   }
 
+  # 检查当前运行条件是否满足后续流程要求。
   ensure_submodule_worktree_present() {
     local submodule_path="$1"
 
@@ -1184,6 +1263,7 @@ run_original_logic() {
     fi
   }
 
+  # 解析并返回后续流程需要的目标信息。
   resolve_remote_branch_for_submodule() {
     local submodule_path="$1"
     local preferred="$SUBMODULE_BRANCH"
@@ -1203,6 +1283,7 @@ run_original_logic() {
     return 1
   }
 
+  # 执行对应的环境配置或同步处理。
   sync_one_submodule_to_latest() {
     local submodule_path="$1"
     local url=""
@@ -1261,6 +1342,7 @@ run_original_logic() {
     success_echo "$submodule_path 已浅同步到 origin/$branch：$(git -C "$submodule_path" rev-parse --short HEAD)"
   }
 
+  # 执行对应的环境配置或同步处理。
   sync_selected_submodules_to_latest() {
     local -a paths
     paths=("$@")
@@ -1277,6 +1359,7 @@ run_original_logic() {
     done
   }
 
+  # 封装 stage_and_commit_parent_changes 对应的独立处理逻辑。
   stage_and_commit_parent_changes() {
     if [[ "$AUTO_PARENT_COMMIT" != "1" ]]; then
       note_echo "AUTO_PARENT_COMMIT=0，已跳过父仓提交"
@@ -1343,6 +1426,7 @@ run_original_logic() {
     success_echo "全量同步完成"
   }
 
+  # 封装 collect_existing_configured_git_paths 对应的独立处理逻辑。
   collect_existing_configured_git_paths() {
     local p=""
     for p in "${CONFIG_PATHS[@]}"; do
@@ -1352,6 +1436,7 @@ run_original_logic() {
     done
   }
 
+  # 执行对应的环境配置或同步处理。
   update_existing_to_latest() {
     local -a existing_paths
     existing_paths=()
@@ -1376,6 +1461,7 @@ run_original_logic() {
     success_echo "已有子模块同步完成"
   }
 
+  # 检查当前运行条件是否满足后续流程要求。
   validate_remote_access_or_loop_continue() {
     local url="$1"
     if git ls-remote "$url" >/dev/null 2>&1; then
@@ -1386,6 +1472,7 @@ run_original_logic() {
     return 1
   }
 
+  # 封装 add_new_git_url_interactive 对应的独立处理逻辑。
   add_new_git_url_interactive() {
     while true; do
       echo ""
@@ -1446,6 +1533,7 @@ run_original_logic() {
   }
 
 
+  # 封装 build_submodule_picker_content 对应的独立处理逻辑。
   build_submodule_picker_content() {
     local style=""
     style="$(detect_git_url_style 2>/dev/null || echo https)"
@@ -1471,6 +1559,7 @@ run_original_logic() {
   EOF2
   }
 
+  # 封装 submodule_picker_all_selected 对应的独立处理逻辑。
   submodule_picker_all_selected() {
     local p=""
 
@@ -1483,6 +1572,7 @@ run_original_logic() {
     return 0
   }
 
+  # 封装 render_submodule_keyboard_picker 对应的独立处理逻辑。
   render_submodule_keyboard_picker() {
     local cursor="$1"
     local message="${2:-}"
@@ -1535,6 +1625,7 @@ run_original_logic() {
     printf '已勾选：%s / %s\n' "${#SUBMODULE_PICKED[@]}" "${#CONFIG_PATHS[@]}"
   }
 
+  # 封装 read_submodule_picker_key 对应的独立处理逻辑。
   read_submodule_picker_key() {
     local key=""
     local rest=""
@@ -1559,6 +1650,7 @@ run_original_logic() {
     SUBMODULE_PICKER_KEY="$key"
   }
 
+  # 收集并校验用户输入，决定后续执行路径。
   select_configured_submodules_interactive() {
     local preview_file="$1"
 
@@ -1680,6 +1772,7 @@ run_original_logic() {
     printf '%s\n' "$selected"
   }
 
+  # 展示脚本用途和影响范围，并在执行前等待用户确认。
   build_intro_content() {
     local style=""
     style="$(detect_git_url_style 2>/dev/null || echo https)"
@@ -1737,6 +1830,7 @@ run_original_logic() {
   EOF2
   }
 
+  # 封装 main_menu_loop 对应的独立处理逻辑。
   main_menu_loop() {
     local preview_file="$1"
 
@@ -1813,10 +1907,17 @@ run_original_logic() {
   # =========================== 原脚本业务逻辑区结束 ===========================
 }
 
-main() {
+# 编排完整业务流程，复杂步骤继续下沉到职责明确的函数。
+run_main_flow() {
   show_readme_and_wait
   run_original_logic "$@"
   success_echo "脚本执行结束。日志：$LOG_FILE"
+}
+
+# 统一收口脚本入口，仅委托已经拆分完成的业务流程。
+main() {
+  # 主入口只负责委托完整业务流程，复杂逻辑统一下沉。
+  run_main_flow "$@"
 }
 
 main "$@"
