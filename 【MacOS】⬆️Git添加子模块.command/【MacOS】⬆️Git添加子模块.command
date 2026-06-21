@@ -1,4 +1,9 @@
 #!/bin/zsh
+# 脚本自述：
+# - 脚本名称：【MacOS】⬆️Git添加子模块.command
+# - 核心用途：执行“⬆️Git添加子模块”对应的 Git / Sourcetree 自动化操作。
+# - 影响范围：可能修改当前仓库、工作区、分支、菜单配置或 Git 索引。
+# - 运行提示：运行后会先打印内置自述；终端模式按回车确认后继续，按 Ctrl+C 可取消。
 # =====================================================================
 # Jobs 标准化脚本外壳
 # 说明：保留原脚本业务逻辑，补齐 README 防误触、彩色日志、zsh 入口、Homebrew 健康自检标准。
@@ -8,28 +13,39 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")" && pwd)"
 SCRIPT_PATH="${SCRIPT_DIR}/$(basename -- "$0")"
 SCRIPT_BASENAME="$(basename "$0" | sed 's/\.[^.]*$//')"
 LOG_FILE="/tmp/${SCRIPT_BASENAME}.log"
-: > "$LOG_FILE"
-
+# 统一输出终端信息并同步记录日志。
 log()            { echo -e "$1" | tee -a "$LOG_FILE"; }
+# 输出 color echo 对应级别的日志信息。
 color_echo()     { log "\033[1;32m$1\033[0m"; }
+# 输出 info echo 对应级别的日志信息。
 info_echo()      { log "\033[1;34mℹ $1\033[0m"; }
+# 输出 success echo 对应级别的日志信息。
 success_echo()   { log "\033[1;32m✔ $1\033[0m"; }
+# 输出 warn echo 对应级别的日志信息。
 warn_echo()      { log "\033[1;33m⚠ $1\033[0m"; }
+# 输出 warm echo 对应级别的日志信息。
 warm_echo()      { log "\033[1;33m$1\033[0m"; }
+# 输出 note echo 对应级别的日志信息。
 note_echo()      { log "\033[1;35m➤ $1\033[0m"; }
+# 输出 error echo 对应级别的日志信息。
 error_echo()     { log "\033[1;31m✖ $1\033[0m"; }
+# 输出 err echo 对应级别的日志信息。
 err_echo()       { log "\033[1;31m$1\033[0m"; }
+# 输出 debug echo 对应级别的日志信息。
 debug_echo()     { log "\033[1;35m🐞 $1\033[0m"; }
+# 输出 highlight echo 对应级别的日志信息。
 highlight_echo() { log "\033[1;36m🔹 $1\033[0m"; }
+# 输出 gray echo 对应级别的日志信息。
 gray_echo()      { log "\033[0;90m$1\033[0m"; }
+# 输出 bold echo 对应级别的日志信息。
 bold_echo()      { log "\033[1m$1\033[0m"; }
+# 输出 underline echo 对应级别的日志信息。
 underline_echo() { log "\033[4m$1\033[0m"; }
-
 # ============================= 标准工具函数 =============================
 get_cpu_arch() {
   [[ "$(uname -m)" == "arm64" ]] && echo "arm64" || echo "x86_64"
 }
-
+# 封装 abs path 对应的独立处理逻辑。
 abs_path() {
   local p="$1"
   [[ -z "$p" ]] && return 1
@@ -43,7 +59,7 @@ abs_path() {
     return 1
   fi
 }
-
+# 收集并校验 ask run 对应的用户确认。
 ask_run() {
   echo ""
   note_echo "👉 $1"
@@ -52,7 +68,7 @@ ask_run() {
   IFS= read -r "input?➤ "
   [[ -n "$input" ]]
 }
-
+# 收集并校验 confirm yes 对应的用户确认。
 confirm_yes() {
   echo ""
   warn_echo "⚠ $1"
@@ -61,7 +77,7 @@ confirm_yes() {
   IFS= read -r "input?➤ "
   [[ "$input" == "YES" ]]
 }
-
+# 封装 inject shellenv block 对应的独立处理逻辑。
 inject_shellenv_block() {
   local profile_file="$1"
   local shellenv_cmd="$2"
@@ -83,7 +99,7 @@ inject_shellenv_block() {
   fi
   eval "$shellenv_cmd" || true
 }
-
+# 封装 activate homebrew shellenv 对应的独立处理逻辑。
 activate_homebrew_shellenv() {
   local arch="$(get_cpu_arch)"
   local brew_bin=""
@@ -106,7 +122,7 @@ activate_homebrew_shellenv() {
   inject_shellenv_block "$profile_file" "eval \"\$(${brew_bin} shellenv)\""
   eval "$(${brew_bin} shellenv)"
 }
-
+# 执行 run brew health update 对应的独立业务步骤。
 run_brew_health_update() {
   info_echo "正在执行 Homebrew 健康更新..."
   brew update  || { error_echo "brew update 失败"; return 1; }
@@ -116,7 +132,7 @@ run_brew_health_update() {
   brew -v      || warn_echo "打印 brew 版本失败，可忽略"
   success_echo "Homebrew 健康更新完成"
 }
-
+# 准备并配置 install homebrew 对应的运行条件。
 install_homebrew() {
   local arch="$(get_cpu_arch)"
   local brew_bin=""
@@ -143,7 +159,7 @@ install_homebrew() {
     note_echo "已跳过 Homebrew 更新"
   fi
 }
-
+# 封装 brew install or upgrade 对应的独立处理逻辑。
 brew_install_or_upgrade() {
   local formula="$1"
   [[ -z "$formula" ]] && return 1
@@ -162,9 +178,15 @@ brew_install_or_upgrade() {
     fi
   fi
 }
-
+# 输出 show readme and wait 对应的说明与结果。
 show_readme_and_wait() {
   clear
+  print -r -- '============================== 脚本内置自述 =============================='
+  print -r -- '脚本名称：【MacOS】⬆️Git添加子模块.command'
+  print -r -- '核心用途：执行“⬆️Git添加子模块”对应的 Git 自动化操作。'
+  print -r -- '影响范围：可能修改当前仓库、工作区、分支或 Git 索引。'
+  print -r -- '取消方式：确认前按 Ctrl+C 终止，不会继续执行后续业务。'
+  print -r -- '============================================================================'
   local readme_path="${SCRIPT_DIR}/README.md"
   if [[ -f "$readme_path" ]]; then
     highlight_echo "正在显示脚本自述文件：$readme_path"
@@ -176,13 +198,11 @@ show_readme_and_wait() {
   echo ""
   read "?👉 请先阅读上面的自述文件，按回车继续执行，或按 Ctrl+C 取消..."
 }
-
+# 执行 run original logic 对应的独立业务步骤。
 run_original_logic() {
   # ============================= 原脚本业务逻辑区 =============================
   set -euo pipefail
-
   # ============================ Git 子模块批量管理（模块化调用） ============================
-
   # —— 自述 & 用户确认 ——
   show_intro_and_wait() {
     cat <<'EOF'
@@ -202,23 +222,23 @@ run_original_logic() {
 
   ------------------------------------------------------------
   按下 [回车] 键继续，或 Ctrl+C 取消。
-  EOF
+EOF
     read -r
   }
-
   # —— 简易语义输出（避免外部依赖） ——
   info_echo()    { echo "ℹ️  $*"; }
+  # 输出 success echo 对应级别的日志信息。
   success_echo() { echo "✅ $*"; }
+  # 输出 warn echo 对应级别的日志信息。
   warn_echo()    { echo "⚠️  $*"; }
+  # 输出 error echo 对应级别的日志信息。
   error_echo()   { echo "❌ $*" >&2; }
-
   # 1) 切到脚本所在目录
   cd_to_script_dir() {
     local script_path
     script_path="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")" && pwd)"
     cd "$script_path"
   }
-
   # 2) 初始化父仓（幂等）
   ensure_repo_initialized() {
     git init
@@ -226,7 +246,6 @@ run_original_logic() {
     git add . || true
     git status
   }
-
   # 3) 仅删除子模块目录，并清理索引中的 gitlink（mode=160000）
   # - 打印将删除的目录清单 + 每条执行结果
   # - 清空 .gitmodules 内容（不存在就新建）
@@ -330,7 +349,6 @@ run_original_logic() {
     fi
     info_echo "索引 gitlink 清理 $cleared 项；.git/modules 清理 $modules_removed 项；跳过 $skipped 项；失败 $failed 项。"
   }
-
   # 4) 确保 .gitmodules 在“当前脚本运行目录”（且该目录就是仓库根）
   ensure_gitmodules_here() {
     # 已是 Git 仓库时，校验顶层目录
@@ -355,7 +373,6 @@ run_original_logic() {
 
     git add .gitmodules 2>/dev/null || true
   }
-
   # 5) 添加子模块（此时就在拉取远端）
   add_submodules() {
     git submodule add -b main https://github.com/JobsKits/JobsCommand-Flutter.git  ./JobsGenesis@JobsCommand.Flutter
@@ -364,18 +381,15 @@ run_original_logic() {
     git submodule add -b main https://github.com/JobsKits/JobsCommand-Others.git   ./JobsGenesis@JobsCommand.Others
     git submodule add -b main https://github.com/JobsKits/JobsSh.git               ./JobsGenesis@JobsSh
   }
-
   # 6) 同步子模块记录
   sync_submodules() {
     git submodule sync
   }
-
   # 7) 提交 .gitmodules 及目录占位
   commit_gitmodules_and_dirs() {
     git add .gitmodules */ 2>/dev/null || true
     git commit -m "同步文件" || info_echo "无变更可提交，跳过 commit"
   }
-
   # 8) 获取并发数（macOS 优先，用于 submodule --jobs）
   get_ncpu() {
     if command -v sysctl >/dev/null 2>&1; then
@@ -384,17 +398,14 @@ run_original_logic() {
       echo 1
     fi
   }
-
   # 9) 首次拉取子模块内容（并发）
   submodule_init_update() {
     git submodule update --init --recursive --jobs="$(get_ncpu)"
   }
-
   # 10) 让全部子模块按“各自的 branch”前移到远端最新
   submodule_ff_remote_merge() {
     git submodule update --remote --merge --recursive --jobs="$(get_ncpu)"
   }
-
   # 11) 配置当前 Git 仓库的 remote（交互式，兼容 zsh）
   ensure_git_remote() {
     local remote_name="${1:-origin}"
@@ -429,7 +440,6 @@ run_original_logic() {
       fi
     done
   }
-
   # 12) 记录子模块新的 SHA 到父仓，并尽量让子模块处于分支 HEAD（避免 detached HEAD）
   record_and_normalize_submodules() {
     info_echo "标准化子模块分支并固化 gitlink 到父仓……"
@@ -460,7 +470,6 @@ run_original_logic() {
     git commit -m "chore: bump submodules to latest remote" || info_echo "无子模块前移需要固化，跳过 commit"
     success_echo "子模块最新提交已固化到父仓（若有变更）"
   }
-
   # ================================== main（只调用函数） ==================================
   main() {
     show_intro_and_wait              # 自述信息 + 等待用户确认
@@ -481,16 +490,21 @@ run_original_logic() {
 
   # =========================== 原脚本业务逻辑区结束 ===========================
 }
-
-run_main_flow() {
-  show_readme_and_wait
-  run_original_logic "$@"
-  success_echo "脚本执行结束。日志：$LOG_FILE"
+# 编排脚本的高层业务流程。
+# 初始化脚本运行环境，并集中承载原有的顶层执行逻辑。
+initialize_script_runtime() {
+  : > "$LOG_FILE"
 }
-
+# 编排脚本的高层业务流程。
 main() {
-  # 主入口只负责委托完整业务流程，复杂逻辑统一下沉。
-  run_main_flow "$@"
+  # 展示脚本内置自述，并按运行入口完成防误触确认。
+  show_readme_and_wait
+  # 初始化 Shell 选项、日志、依赖和入口运行状态。
+  initialize_script_runtime
+  # 执行 run_original_logic 对应的核心业务步骤。
+  run_original_logic "$@"
+  # 输出脚本执行结果、摘要和日志位置。
+  success_echo "脚本执行结束。日志：$LOG_FILE"
 }
 
 main "$@"

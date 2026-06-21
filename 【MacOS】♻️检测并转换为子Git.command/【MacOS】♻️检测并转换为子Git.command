@@ -1,4 +1,9 @@
 #!/bin/zsh
+# 脚本自述：
+# - 脚本名称：【MacOS】♻️检测并转换为子Git.command
+# - 核心用途：执行“♻️检测并转换为子Git”对应的 Git / Sourcetree 自动化操作。
+# - 影响范围：可能修改当前仓库、工作区、分支、菜单配置或 Git 索引。
+# - 运行提示：运行后会先打印内置自述；终端模式按回车确认后继续，按 Ctrl+C 可取消。
 # =====================================================================
 # Jobs 标准化脚本外壳
 # 说明：保留原脚本业务逻辑，补齐 README 防误触、彩色日志、zsh 入口、Homebrew 健康自检标准。
@@ -8,8 +13,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")" && pwd)"
 SCRIPT_PATH="${SCRIPT_DIR}/$(basename -- "$0")"
 SCRIPT_BASENAME="$(basename "$0" | sed 's/\.[^.]*$//')"
 LOG_FILE="/tmp/${SCRIPT_BASENAME}.log"
-: > "$LOG_FILE"
-
 # 按当前输出级别记录终端信息，并同步写入脚本日志。
 log()            { echo -e "$1" | tee -a "$LOG_FILE"; }
 # 按当前输出级别记录终端信息，并同步写入脚本日志。
@@ -38,12 +41,10 @@ gray_echo()      { log "\033[0;90m$1\033[0m"; }
 bold_echo()      { log "\033[1m$1\033[0m"; }
 # 按当前输出级别记录终端信息，并同步写入脚本日志。
 underline_echo() { log "\033[4m$1\033[0m"; }
-
 # ============================= 标准工具函数 =============================
 get_cpu_arch() {
   [[ "$(uname -m)" == "arm64" ]] && echo "arm64" || echo "x86_64"
 }
-
 # 封装 abs_path 对应的独立处理逻辑。
 abs_path() {
   local p="$1"
@@ -58,7 +59,6 @@ abs_path() {
     return 1
   fi
 }
-
 # 收集并校验用户输入，决定后续执行路径。
 ask_run() {
   echo ""
@@ -68,7 +68,6 @@ ask_run() {
   IFS= read -r "input?➤ "
   [[ -n "$input" ]]
 }
-
 # 收集并校验用户输入，决定后续执行路径。
 confirm_yes() {
   echo ""
@@ -78,7 +77,6 @@ confirm_yes() {
   IFS= read -r "input?➤ "
   [[ "$input" == "YES" ]]
 }
-
 # 封装 inject_shellenv_block 对应的独立处理逻辑。
 inject_shellenv_block() {
   local profile_file="$1"
@@ -101,7 +99,6 @@ inject_shellenv_block() {
   fi
   eval "$shellenv_cmd" || true
 }
-
 # 封装 activate_homebrew_shellenv 对应的独立处理逻辑。
 activate_homebrew_shellenv() {
   local arch="$(get_cpu_arch)"
@@ -125,7 +122,6 @@ activate_homebrew_shellenv() {
   inject_shellenv_block "$profile_file" "eval \"\$(${brew_bin} shellenv)\""
   eval "$(${brew_bin} shellenv)"
 }
-
 # 执行已经拆分完成的独立业务步骤。
 run_brew_health_update() {
   info_echo "正在执行 Homebrew 健康更新..."
@@ -136,7 +132,6 @@ run_brew_health_update() {
   brew -v      || warn_echo "打印 brew 版本失败，可忽略"
   success_echo "Homebrew 健康更新完成"
 }
-
 # 执行对应的环境配置或同步处理。
 install_homebrew() {
   local arch="$(get_cpu_arch)"
@@ -164,7 +159,6 @@ install_homebrew() {
     note_echo "已跳过 Homebrew 更新"
   fi
 }
-
 # 封装 brew_install_or_upgrade 对应的独立处理逻辑。
 brew_install_or_upgrade() {
   local formula="$1"
@@ -184,10 +178,15 @@ brew_install_or_upgrade() {
     fi
   fi
 }
-
 # 展示脚本用途和影响范围，并在执行前等待用户确认。
 show_readme_and_wait() {
   clear
+  print -r -- '============================== 脚本内置自述 =============================='
+  print -r -- '脚本名称：【MacOS】♻️检测并转换为子Git.command'
+  print -r -- '核心用途：执行“♻️检测并转换为子Git”对应的 Git 自动化操作。'
+  print -r -- '影响范围：可能修改当前仓库、工作区、分支或 Git 索引。'
+  print -r -- '取消方式：确认前按 Ctrl+C 终止，不会继续执行后续业务。'
+  print -r -- '============================================================================'
   local readme_path="${SCRIPT_DIR}/README.md"
   if [[ -f "$readme_path" ]]; then
     highlight_echo "正在显示脚本自述文件：$readme_path"
@@ -199,7 +198,6 @@ show_readme_and_wait() {
   echo ""
   read "?👉 请先阅读上面的自述文件，按回车继续执行，或按 Ctrl+C 取消..."
 }
-
 # 执行已经拆分完成的独立业务步骤。
 run_original_logic() {
   # ============================= 原脚本业务逻辑区 =============================
@@ -223,7 +221,6 @@ run_original_logic() {
   # 交互统一走 TTY，避免 .command / 管道环境 stdin 异常导致卡死
   TTY_IN="/dev/tty"
   TTY_OUT="/dev/tty"
-
   # ================================== 日志输出函数 ==================================
   # 说明：
   # - 所有“展示给用户”的输出走 TTY（不会污染 stdout）
@@ -234,7 +231,6 @@ run_original_logic() {
     printf "%b\n" "$msg" >>"$LOG_FILE"
     printf "%b\n" "$msg" >"$TTY_OUT"
   }
-
   # 按当前输出级别记录终端信息，并同步写入脚本日志。
   info_echo()      { _log_raw "\033[1;34mℹ $1\033[0m"; }
   # 按当前输出级别记录终端信息，并同步写入脚本日志。
@@ -255,7 +251,6 @@ run_original_logic() {
   bold_echo()      { _log_raw "\033[1m$1\033[0m"; }
   # 按当前输出级别记录终端信息，并同步写入脚本日志。
   underline_echo() { _log_raw "\033[4m$1\033[0m"; }
-
   # 兼容你已有的命名习惯（向后兼容）
   log() { _log_raw "$1"; }
   # 按当前输出级别记录终端信息，并同步写入脚本日志。
@@ -278,7 +273,6 @@ run_original_logic() {
   bold() { bold_echo "$1"; }
   # 封装 underline 对应的独立处理逻辑。
   underline() { underline_echo "$1"; }
-
   # ================================== 异常捕获 ==================================
   # 说明：
   # - 仅用于“真正异常”。用户主动取消/返回不应触发 die。
@@ -287,7 +281,6 @@ run_original_logic() {
     error "请查看日志：$LOG_FILE"
     exit 1
   }
-
   # 封装 on_err 对应的独立处理逻辑。
   on_err() {
     local line="${1:-unknown}"
@@ -295,7 +288,6 @@ run_original_logic() {
     error "请查看日志：$LOG_FILE"
   }
   trap 'on_err $LINENO' ERR
-
   # ================================== TTY 交互工具 ==================================
   read_tty() {
     local __var="$1"
@@ -305,14 +297,12 @@ run_original_logic() {
     IFS= read -r input <"$TTY_IN" || true
     printf -v "$__var" "%s" "$input"
   }
-
   # 封装 press_enter_to_continue 对应的独立处理逻辑。
   press_enter_to_continue() {
     note "👉 按 [Enter] 继续..."
     local _x=""
     read_tty _x ""
   }
-
   # ================================== 路径处理 / Git 判断 ==================================
   trim_path() {
     # 去掉首尾空格、末尾 /
@@ -325,22 +315,18 @@ run_original_logic() {
     if [[ "$s" == \'*\' && "$s" == *\' ]]; then s="${s:1:${#s}-2}"; fi
     printf "%s" "$s"
   }
-
   # 封装 require_cmd 对应的独立处理逻辑。
   require_cmd() { command -v "$1" &>/dev/null; }
-
   # 检查当前运行条件是否满足后续流程要求。
   is_git_worktree() {
     local dir="$1"
     git -C "$dir" rev-parse --is-inside-work-tree &>/dev/null
   }
-
   # 解析并返回后续流程需要的目标信息。
   get_git_root() {
     local dir="$1"
     git -C "$dir" rev-parse --show-toplevel 2>/dev/null || true
   }
-
   # 封装 abspath 对应的独立处理逻辑。
   abspath() {
     local p="$1"
@@ -350,10 +336,9 @@ run_original_logic() {
       python3 - <<'PY' "$p" 2>/dev/null || perl -MCwd -e 'print Cwd::abs_path($ARGV[0])' "$p"
   import os,sys
   print(os.path.abspath(sys.argv[1]))
-  PY
+PY
     fi
   }
-
   # ================================== 自述 ==================================
   show_intro_and_wait() {
     cat >"$TTY_OUT" <<EOF
@@ -369,12 +354,11 @@ run_original_logic() {
   6) 每个目录转换前会二次确认：会把原目录备份到 /tmp，再执行 git submodule add
 
   ⚠ 风险提示：转换会修改父仓库 .gitmodules / gitlink，并移动原目录到 /tmp 备份。
-  EOF
+EOF
 
     printf "\n➤ 👉 按 [Enter] 继续...\n\n" >"$TTY_OUT"
     IFS= read -r _ <"$TTY_IN" || true
   }
-
   # ================================== 依赖自检 ==================================
   deps_homebrew() {
     debug "STEP -> deps_homebrew"
@@ -397,7 +381,7 @@ run_original_logic() {
       cat >"$TTY_OUT" <<'EOF'
   👉 直接回车：跳过更新
   👉 输入任意字符后回车：执行 ask_run "执行 Homebrew 更新 / 升级 / 清理？" && run_brew_health_update
-  EOF
+EOF
       local c=""
       read_tty c ""
       if [[ -n "$c" ]]; then
@@ -416,7 +400,6 @@ run_original_logic() {
     bv="$(brew -v 2>/dev/null | head -n 1 || true)"
     [[ -n "$bv" ]] && info "brew 版本：$bv"
   }
-
   # 封装 deps_fzf 对应的独立处理逻辑。
   deps_fzf() {
     debug "STEP -> deps_fzf"
@@ -430,7 +413,7 @@ run_original_logic() {
       cat >"$TTY_OUT" <<'EOF'
   👉 直接回车：跳过
   👉 输入任意字符后回车：执行 brew update && brew upgrade fzf && brew cleanup
-  EOF
+EOF
       local c=""
       read_tty c ""
       if [[ -n "$c" ]]; then
@@ -448,14 +431,12 @@ run_original_logic() {
     fv="$(fzf --version 2>/dev/null | head -n 1 || true)"
     [[ -n "$fv" ]] && info "fzf 版本：$fv"
   }
-
   # 封装 deps_check 对应的独立处理逻辑。
   deps_check() {
     debug "STEP -> deps_check"
     deps_homebrew
     deps_fzf
   }
-
   # ================================== 起点选择 ==================================
   pick_start_dir() {
     debug "STEP -> pick_start_dir"
@@ -489,7 +470,6 @@ run_original_logic() {
       fi
     done
   }
-
   # 解析并返回后续流程需要的目标信息。
   resolve_parent_git_root() {
     debug "STEP -> resolve_parent_git_root"
@@ -513,7 +493,6 @@ run_original_logic() {
     ".idea"
     ".vscode"
   )
-
   # 封装 list_existing_submodules 对应的独立处理逻辑。
   list_existing_submodules() {
     local parent="$1"
@@ -521,7 +500,6 @@ run_original_logic() {
     [[ -f "$gm" ]] || return 0
     sed -n 's/^[[:space:]]*path[[:space:]]*=[[:space:]]*//p' "$gm" 2>/dev/null || true
   }
-
   # 输出：每行一个候选 repo 根目录相对路径（相对 parent）
   list_nested_git_repos() {
     debug "STEP -> list_nested_git_repos"
@@ -592,13 +570,11 @@ run_original_logic() {
 
     rm -f "$tmp_all" "$tmp_filtered" "$tmp_submods"
   }
-
   # 封装 child_origin_url 对应的独立处理逻辑。
   child_origin_url() {
     local child_abs="$1"
     git -C "$child_abs" config --get remote.origin.url 2>/dev/null || true
   }
-
   # 封装 child_branch_name 对应的独立处理逻辑。
   child_branch_name() {
     local child_abs="$1"
@@ -616,7 +592,6 @@ run_original_logic() {
     fi
     printf "%s" "$b"
   }
-
   # 输出：每行 TAB 分隔：rel<TAB>origin<TAB>branch
   list_repo_rows() {
     local parent="$1"
@@ -632,7 +607,6 @@ run_original_logic() {
       printf "%s\t%s\t%s\n" "$rel" "$url" "$branch"
     done < <(list_nested_git_repos "$parent")
   }
-
   # ================================== fzf 选择目标 ==================================
   # 返回：多行 rel（相对路径）；空字符串表示“取消/返回”
   select_targets() {
@@ -693,7 +667,6 @@ run_original_logic() {
 
     printf "%s\n" "$selected" | cut -f1
   }
-
   # ================================== 转换为 submodule（逐个确认） ==================================
   # 返回：0=允许继续；1=用户选择返回“起点目录输入”
   ensure_parent_clean_or_confirm() {
@@ -712,7 +685,6 @@ run_original_logic() {
     fi
     return 0
   }
-
   # 收集并校验用户输入，决定后续执行路径。
   confirm_skip_item() {
     # 返回 0 = 继续；返回 1 = 跳过
@@ -726,7 +698,6 @@ run_original_logic() {
     [[ -n "$c" ]] && return 1
     return 0
   }
-
   # 尝试清理“path 已在 index / .gitmodules 残留”的历史状态
   cleanup_submodule_residue() {
     local parent="$1"
@@ -757,7 +728,6 @@ run_original_logic() {
     # 3) 父仓库 .git/modules 里可能残留
     rm -rf "$parent/.git/modules/$rel" 2>/dev/null || true
   }
-
   # 封装 convert_one_to_submodule 对应的独立处理逻辑。
   convert_one_to_submodule() {
     debug "STEP -> convert_one_to_submodule"
@@ -823,7 +793,6 @@ run_original_logic() {
     gray "备份保留在：$backup_root"
     return 0
   }
-
   # ================================== 处理循环 / 继续策略 ==================================
   # 处理结束后：
   # - 直接回车：回到 fzf（同一个父仓库继续选）
@@ -833,13 +802,12 @@ run_original_logic() {
   ➤ 下一步：
   👉 直接回车：继续在当前父仓库中选择下一个 Git 目录（回到 fzf）
   👉 输入任意字符后回车：重新输入/拖入一个起点目录（回到第一步）
-  EOF
+EOF
     local c=""
     read_tty c ""
     [[ -n "$c" ]] && return 1
     return 0
   }
-
   # 执行已经拆分完成的独立业务步骤。
   run_conversion_once() {
     debug "STEP -> run_conversion_once"
@@ -873,7 +841,6 @@ run_original_logic() {
 
     return 0
   }
-
   # ================================== 主流程封装 ==================================
   run_flow_forever() {
     debug "STEP -> run_flow_forever"
@@ -914,7 +881,6 @@ run_original_logic() {
       set --
     done
   }
-
   # ================================== main（模块化统一调用） ==================================
   main() {
     : >"$LOG_FILE"
@@ -930,18 +896,21 @@ run_original_logic() {
 
   # =========================== 原脚本业务逻辑区结束 ===========================
 }
-
-# 编排完整业务流程，复杂步骤继续下沉到职责明确的函数。
-run_main_flow() {
-  show_readme_and_wait
-  run_original_logic "$@"
-  success_echo "脚本执行结束。日志：$LOG_FILE"
+# 编排脚本的高层业务流程。
+# 初始化脚本运行环境，并集中承载原有的顶层执行逻辑。
+initialize_script_runtime() {
+  : > "$LOG_FILE"
 }
-
-# 统一收口脚本入口，仅委托已经拆分完成的业务流程。
+# 编排脚本的高层业务流程。
 main() {
-  # 主入口只负责委托完整业务流程，复杂逻辑统一下沉。
-  run_main_flow "$@"
+  # 展示脚本内置自述，并按运行入口完成防误触确认。
+  show_readme_and_wait
+  # 初始化 Shell 选项、日志、依赖和入口运行状态。
+  initialize_script_runtime
+  # 执行 run_original_logic 对应的核心业务步骤。
+  run_original_logic "$@"
+  # 输出脚本执行结果、摘要和日志位置。
+  success_echo "脚本执行结束。日志：$LOG_FILE"
 }
 
 main "$@"

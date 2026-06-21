@@ -1,25 +1,22 @@
 #!/bin/zsh
+# 脚本自述：
+# - 脚本名称：【MacOS】🧭对齐父Git子模块.command
+# - 核心用途：执行“🧭对齐父Git子模块”对应的 Git / Sourcetree 自动化操作。
+# - 影响范围：可能修改当前仓库、工作区、分支、菜单配置或 Git 索引。
+# - 运行提示：运行后会先打印内置自述；终端模式按回车确认后继续，按 Ctrl+C 可取消。
 
-set -e
-setopt NO_NOMATCH
-set -o pipefail
 
 SCRIPT_SOURCE="$0"
-if [[ "$SCRIPT_SOURCE" != /* ]]; then
-  SCRIPT_SOURCE="${PWD}/${SCRIPT_SOURCE}"
-fi
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
 SCRIPT_PATH="${SCRIPT_DIR}/$(basename -- "$SCRIPT_SOURCE")"
 SCRIPT_BASENAME=$(basename "$SCRIPT_SOURCE" | sed 's/\.[^.]*$//')
 LOG_FILE="/tmp/${SCRIPT_BASENAME}.log"
-: > "$LOG_FILE"
 
 PARENT_REPO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 typeset -ga CURRENT_SUBGIT_DIRS
 typeset -gA SUBMODULE_URLS
 CURRENT_SUBGIT_DIRS=()
-
 # 输出日志并同步写入日志文件。
 log()            { echo -e "$1" | tee -a "$LOG_FILE"; }
 # 按当前输出级别记录终端信息，并同步写入脚本日志。
@@ -48,11 +45,16 @@ gray_echo()      { log "\033[0;90m$1\033[0m"; }
 bold_echo()      { log "\033[1m$1\033[0m"; }
 # 按当前输出级别记录终端信息，并同步写入脚本日志。
 underline_echo() { log "\033[4m$1\033[0m"; }
-
 # 展示同目录 README，避免双击误触后直接修改 Git 元数据。
 show_readme_and_wait() {
   local readme_path="${SCRIPT_DIR}/README.md"
   clear 2>/dev/null || true
+  print -r -- '============================== 脚本内置自述 =============================='
+  print -r -- '脚本名称：【MacOS】🧭对齐父Git子模块.command'
+  print -r -- '核心用途：执行“🧭对齐父Git子模块”对应的 Git 自动化操作。'
+  print -r -- '影响范围：可能修改当前仓库、工作区、分支或 Git 索引。'
+  print -r -- '取消方式：确认前按 Ctrl+C 终止，不会继续执行后续业务。'
+  print -r -- '============================================================================'
   if [[ -f "$readme_path" ]]; then
     highlight_echo "============================== README.md =============================="
     cat "$readme_path" | tee -a "$LOG_FILE"
@@ -64,7 +66,6 @@ show_readme_and_wait() {
   echo ""
   read -r "?👉 已阅读自述文件，按回车继续；按 Ctrl+C 取消：" _
 }
-
 # 普通修复动作默认跳过，输入任意字符后才执行。
 ask_any_to_run() {
   local message="$1"
@@ -72,7 +73,6 @@ ask_any_to_run() {
   read -r "?${message}（直接回车跳过；输入任意字符后回车执行）：" answer
   [[ -n "$answer" ]]
 }
-
 # 检查命令和父仓库环境是否满足修复条件。
 check_environment() {
   if ! command -v git >/dev/null 2>&1; then
@@ -90,7 +90,6 @@ check_environment() {
     return 1
   fi
 }
-
 # 判断数组里是否包含指定路径。
 array_contains() {
   local needle="$1"
@@ -101,7 +100,6 @@ array_contains() {
   done
   return 1
 }
-
 # 把路径规整为绝对路径，路径不存在时原样返回。
 normalize_existing_path() {
   local input_path="$1"
@@ -121,7 +119,6 @@ normalize_existing_path() {
     print -r -- "$input_path"
   fi
 }
-
 # 读取 Git 配置文件里 origin 远端地址，避免坏 worktree 导致 git config 失败。
 read_origin_from_config_file() {
   local config_file="$1"
@@ -137,13 +134,11 @@ read_origin_from_config_file() {
     }
   ' "$config_file"
 }
-
 # 根据子目录名推导父仓库 .git/modules 下的标准 gitdir。
 module_dir_for_path() {
   local sub_path="$1"
   print -r -- "${PARENT_REPO_DIR}/.git/modules/${sub_path}"
 }
-
 # 读取子 Git 当前可用的 origin URL。
 read_origin_url_for_subgit() {
   local sub_path="$1"
@@ -194,7 +189,6 @@ read_origin_url_for_subgit() {
 
   return 1
 }
-
 # 扫描父仓库第一层真实存在的子 Git 目录。
 discover_current_subgit_dirs() {
   local marker=""
@@ -218,7 +212,6 @@ discover_current_subgit_dirs() {
     return 1
   fi
 }
-
 # 收集每个真实子 Git 的远端地址，无法识别时停止，避免写坏 .gitmodules。
 collect_submodule_urls() {
   local sub_path=""
@@ -235,7 +228,6 @@ collect_submodule_urls() {
     SUBMODULE_URLS[$sub_path]="$url"
   done
 }
-
 # 打印修复前状态，让用户看清楚 Git 输出和磁盘真实情况的差异。
 print_preflight_report() {
   local sub_path=""
@@ -258,7 +250,6 @@ print_preflight_report() {
   fi
   highlight_echo "==========================================================================="
 }
-
 # 将旧 gitdir 元数据移动或指向当前目录名对应的位置。
 repair_subgit_gitdir_pointer() {
   local sub_path="$1"
@@ -291,7 +282,6 @@ repair_subgit_gitdir_pointer() {
     git --git-dir="$desired_module_dir" --work-tree="$sub_dir" config remote.origin.url "$url" >/dev/null 2>&1 || true
   fi
 }
-
 # 按当前真实子 Git 目录重写 .gitmodules。
 rewrite_gitmodules() {
   local tmp_file=""
@@ -310,7 +300,6 @@ rewrite_gitmodules() {
   mv "$tmp_file" "${PARENT_REPO_DIR}/.gitmodules"
   success_echo "已按当前真实子 Git 目录重写 .gitmodules。"
 }
-
 # 清理父仓库索引里已经不存在于磁盘当前子 Git 目录的旧 gitlink。
 remove_stale_gitlinks_from_index() {
   local gitlink=""
@@ -323,7 +312,6 @@ remove_stale_gitlinks_from_index() {
     fi
   done < <(git -C "$PARENT_REPO_DIR" ls-files -s | awk '$1 == "160000" {print $4}' | sort)
 }
-
 # 暂存当前真实子 Git 目录，使父仓库 gitlink 和磁盘形态一致。
 stage_current_gitlinks() {
   local sub_path=""
@@ -335,7 +323,6 @@ stage_current_gitlinks() {
     git -C "$PARENT_REPO_DIR" add -- "$sub_path"
   done
 }
-
 # 把普通嵌套 Git 吸收到父仓库 .git/modules 下，形成标准子模块元数据。
 absorb_gitdirs_if_needed() {
   local sub_path=""
@@ -344,7 +331,6 @@ absorb_gitdirs_if_needed() {
     git -C "$PARENT_REPO_DIR" submodule absorbgitdirs -- "$sub_path" >/dev/null 2>&1 || true
   done
 }
-
 # 清理本地 .git/config 里已经不属于当前目录形态的旧 submodule section。
 clean_local_submodule_config() {
   local key=""
@@ -360,13 +346,11 @@ clean_local_submodule_config() {
     fi
   done < <(git -C "$PARENT_REPO_DIR" config --name-only --get-regexp '^submodule\..*\.url$' 2>/dev/null || true)
 }
-
 # 重新注册并同步当前 .gitmodules 到本地 Git 配置。
 sync_submodule_config() {
   git -C "$PARENT_REPO_DIR" submodule init
   git -C "$PARENT_REPO_DIR" submodule sync --recursive
 }
-
 # 对齐每个子 Git 的模块目录和远端地址。
 repair_all_subgit_metadata() {
   local sub_path=""
@@ -375,7 +359,6 @@ repair_all_subgit_metadata() {
     repair_subgit_gitdir_pointer "$sub_path"
   done
 }
-
 # 校验磁盘目录、.gitmodules 和父仓库 gitlink 三者是否完全一致。
 verify_alignment() {
   local current_file=""
@@ -411,7 +394,6 @@ verify_alignment() {
 
   success_echo "磁盘真实子 Git 目录、.gitmodules、父仓库 gitlink 已完全一致。"
 }
-
 # 打印修复后的 Git 状态和子模块状态。
 print_final_report() {
   highlight_echo "============================== 修复后 git submodule status =============================="
@@ -423,7 +405,6 @@ print_final_report() {
   git -C "$PARENT_REPO_DIR" status --short 2>&1 | tee -a "$LOG_FILE" || true
   highlight_echo "============================================================================="
 }
-
 # 真实修复流程：以磁盘目录为基准重建子模块元数据。
 run_business() {
   print_preflight_report
@@ -447,21 +428,31 @@ run_business() {
   verify_alignment
   print_final_report
 }
-
-# 编排完整业务流程，复杂步骤继续下沉到职责明确的函数。
-run_main_flow() {
-  # 主流程统一收口：先展示自述，再检查环境，最后按当前磁盘目录修复子模块元数据。
-  show_readme_and_wait
-  check_environment
-  discover_current_subgit_dirs
-  collect_submodule_urls
-  run_business
+# 编排脚本的高层业务流程。
+# 初始化脚本运行环境，并集中承载原有的顶层执行逻辑。
+initialize_script_runtime() {
+  set -e
+  setopt NO_NOMATCH
+  set -o pipefail
+  if [[ "$SCRIPT_SOURCE" != /* ]]; then
+    SCRIPT_SOURCE="${PWD}/${SCRIPT_SOURCE}"
+  fi
+  : > "$LOG_FILE"
 }
-
-# 统一收口脚本入口，仅委托已经拆分完成的业务流程。
+# 编排脚本的高层业务流程。
 main() {
-  # 主入口只负责委托完整业务流程，复杂逻辑统一下沉。
-  run_main_flow "$@"
+  # 展示脚本内置自述，并按运行入口完成防误触确认。
+  show_readme_and_wait
+  # 初始化 Shell 选项、日志、依赖和入口运行状态。
+  initialize_script_runtime
+  # 检查当前环境与执行条件是否满足脚本要求。
+  check_environment
+  # 执行 discover_current_subgit_dirs 对应的独立业务步骤。
+  discover_current_subgit_dirs
+  # 执行 collect_submodule_urls 对应的独立业务步骤。
+  collect_submodule_urls
+  # 执行 run_business 对应的核心业务步骤。
+  run_business
 }
 
 main "$@"
