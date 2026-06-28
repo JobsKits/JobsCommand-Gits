@@ -86,8 +86,7 @@ append_gitignore_line() {
   fi
 }
 # 输出 show readme and wait 对应的说明与结果。
-show_readme_and_wait() {
-  local readme_path="${SCRIPT_DIR}/README.md"
+show_script_intro_and_wait() {
   if [[ -t 1 && -n "${TERM:-}" && "${TERM:-}" != "dumb" ]]; then
     clear
   fi
@@ -98,14 +97,6 @@ show_readme_and_wait() {
   print -r -- '取消方式：确认前按 Ctrl+C 终止，不会继续执行后续业务。'
   print -r -- '============================================================================'
 
-  if [[ -f "$readme_path" ]]; then
-    note_echo "============================== README.md =============================="
-    cat "$readme_path" | tee -a "$LOG_FILE"
-    note_echo "======================================================================="
-  else
-    warn_echo "未找到 README.md，继续执行内置流程说明。"
-    note_echo "本脚本会清理 Git 索引中的 Codex 运行态文件记录，不删除本地真实文件。"
-  fi
 
   echo ""
   read -r "?👉 已阅读说明，按回车继续执行；按 Ctrl+C 取消：" _
@@ -249,7 +240,7 @@ initialize_script_runtime() {
 # 编排脚本的高层业务流程。
 main() {
   # 展示脚本内置自述，并按运行入口完成防误触确认。
-  show_readme_and_wait
+  show_script_intro_and_wait
   # 初始化 Shell 选项、日志、依赖和入口运行状态。
   initialize_script_runtime
   # 检查当前环境与执行条件是否满足脚本要求。

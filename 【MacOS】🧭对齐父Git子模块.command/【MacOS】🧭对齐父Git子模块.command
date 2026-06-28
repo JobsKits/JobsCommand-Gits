@@ -1,18 +1,34 @@
 #!/bin/zsh
 # 脚本自述：
 # - 脚本名称：【MacOS】🧭对齐父Git子模块.command
-# - 核心用途：执行“🧭对齐父Git子模块”对应的 Git / Sourcetree 自动化操作。
-# - 影响范围：可能修改当前仓库、工作区、分支、菜单配置或 Git 索引。
+# - 核心用途：按磁盘真实子 Git 目录对齐父仓库 .gitmodules、gitlink 和本地 submodule 配置。
+# - 影响范围：可能修改父仓库 .gitmodules、索引 gitlink、本地 .git/config 和子目录 .git 指针。
 # - 运行提示：运行后会先打印内置自述；终端模式按回车确认后继续，按 Ctrl+C 可取消。
 
-
-SCRIPT_SOURCE="$0"
-SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+SCRIPT_SOURCE="${(%):-%x}"
+SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_SOURCE")" && pwd)"
 SCRIPT_PATH="${SCRIPT_DIR}/$(basename -- "$SCRIPT_SOURCE")"
 SCRIPT_BASENAME=$(basename "$SCRIPT_SOURCE" | sed 's/\.[^.]*$//')
-LOG_FILE="/tmp/${SCRIPT_BASENAME}.log"
+LOG_DIR="${TMPDIR:-/tmp}"
+LOG_DIR="${LOG_DIR%/}"
+LOG_FILE="${LOG_DIR}/${SCRIPT_BASENAME}.log"
 
-PARENT_REPO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# 定位需要对齐的父 Git 仓库，兼容一脚本目录和直接放在仓库根目录两种形态。
+resolve_parent_repo_dir() {
+  if [[ -d "${SCRIPT_DIR}/../.git" || -f "${SCRIPT_DIR}/../.git" ]]; then
+    cd -P "${SCRIPT_DIR}/.." && pwd
+    return 0
+  fi
+
+  if [[ -d "${SCRIPT_DIR}/.git" || -f "${SCRIPT_DIR}/.git" ]]; then
+    print -r -- "$SCRIPT_DIR"
+    return 0
+  fi
+
+  cd -P "${SCRIPT_DIR}/.." && pwd
+}
+
+PARENT_REPO_DIR="$(resolve_parent_repo_dir)"
 
 typeset -ga CURRENT_SUBGIT_DIRS
 typeset -gA SUBMODULE_URLS
@@ -45,26 +61,26 @@ gray_echo()      { log "\033[0;90m$1\033[0m"; }
 bold_echo()      { log "\033[1m$1\033[0m"; }
 # 按当前输出级别记录终端信息，并同步写入脚本日志。
 underline_echo() { log "\033[4m$1\033[0m"; }
-# 展示同目录 README，避免双击误触后直接修改 Git 元数据。
-show_readme_and_wait() {
-  local readme_path="${SCRIPT_DIR}/README.md"
-  clear 2>/dev/null || true
+# 打印脚本内置自述，避免双击误触后直接修改 Git 元数据。
+show_script_intro_and_wait() {
+  if [[ -t 1 && -n "${TERM:-}" && "${TERM:-}" != "dumb" ]]; then
+    clear
+  fi
   print -r -- '============================== 脚本内置自述 =============================='
   print -r -- '脚本名称：【MacOS】🧭对齐父Git子模块.command'
-  print -r -- '核心用途：执行“🧭对齐父Git子模块”对应的 Git 自动化操作。'
-  print -r -- '影响范围：可能修改当前仓库、工作区、分支或 Git 索引。'
+  print -r -- '核心用途：按真实子 Git 目录对齐父 Git 的 .gitmodules、gitlink 和本地 submodule 配置。'
+  print -r -- '影响范围：可能修改 .gitmodules、父仓库索引 gitlink、本地 .git/config 和子目录 .git 指针。'
+  print -r -- '运行策略：先展示当前真实子 Git 和 git status；二次确认默认跳过，输入任意字符后才执行修复。'
+  print -r -- "目标父仓：${PARENT_REPO_DIR}"
+  print -r -- "日志位置：${LOG_FILE}"
   print -r -- '取消方式：确认前按 Ctrl+C 终止，不会继续执行后续业务。'
   print -r -- '============================================================================'
-  if [[ -f "$readme_path" ]]; then
-    highlight_echo "============================== README.md =============================="
-    cat "$readme_path" | tee -a "$LOG_FILE"
-    highlight_echo "======================================================================="
-  else
-    warn_echo "未找到 README.md，继续执行内置流程说明。"
-    note_echo "脚本会以脚本所在目录的上一层作为父 Git，并按真实子 Git 目录对齐 .gitmodules 和 gitlink。"
+  if [[ ! -t 0 ]]; then
+    print -u2 -r -- '当前没有可交互输入，请在终端中重新运行。'
+    return 1
   fi
   echo ""
-  read -r "?👉 已阅读自述文件，按回车继续；按 Ctrl+C 取消：" _
+  read -r "?👉 已了解脚本用途与影响，按回车继续；按 Ctrl+C 取消：" _
 }
 # 普通修复动作默认跳过，输入任意字符后才执行。
 ask_any_to_run() {
@@ -428,7 +444,6 @@ run_business() {
   verify_alignment
   print_final_report
 }
-# 编排脚本的高层业务流程。
 # 初始化脚本运行环境，并集中承载原有的顶层执行逻辑。
 initialize_script_runtime() {
   set -e
@@ -441,18 +456,12 @@ initialize_script_runtime() {
 }
 # 编排脚本的高层业务流程。
 main() {
-  # 展示脚本内置自述，并按运行入口完成防误触确认。
-  show_readme_and_wait
-  # 初始化 Shell 选项、日志、依赖和入口运行状态。
-  initialize_script_runtime
-  # 检查当前环境与执行条件是否满足脚本要求。
-  check_environment
-  # 执行 discover_current_subgit_dirs 对应的独立业务步骤。
-  discover_current_subgit_dirs
-  # 执行 collect_submodule_urls 对应的独立业务步骤。
-  collect_submodule_urls
-  # 执行 run_business 对应的核心业务步骤。
-  run_business
+  show_script_intro_and_wait # 展示脚本内置自述，并按运行入口完成防误触确认。
+  initialize_script_runtime # 初始化 Shell 选项、日志、依赖和入口运行状态。
+  check_environment # 检查当前环境与执行条件是否满足脚本要求。
+  discover_current_subgit_dirs # 扫描父仓库第一层真实存在的子 Git 目录。
+  collect_submodule_urls # 收集每个真实子 Git 的远端地址。
+  run_business # 执行以磁盘目录为基准的子模块对齐流程。
 }
 
 main "$@"

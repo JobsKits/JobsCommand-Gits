@@ -10,10 +10,11 @@
 
 - 这个脚本用于修复父 [**GitHub**](https://github.com) / Git 仓库管理多个子 Git 时，目录改名后引发的子模块元数据错位问题。
 - 脚本以当前磁盘上真实存在的第一层子 Git 目录为基准，对齐 `.gitmodules`、父仓库 gitlink、本地 `.git/config` 和子目录 `.git` 指针。
-- 脚本所在目录的上一层会被视为父 Git 仓库。本脚本放在 `JobsGenesis` 下的同名文件夹里，因此父仓库就是：
+- 脚本会自动定位目标父 Git 仓库：优先处理脚本所在目录上一层的 Git 仓库；如果脚本直接放在 Git 根目录，则处理当前目录。
+- 在当前“一脚本一目录”结构中，目标父仓库就是：
 
   ```shell
-  /Users/jobs/Documents/Github/JobsGenesis
+  ..
   ```
 
 ## 一、适用场景 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
@@ -42,12 +43,11 @@
 - 终端运行：
 
   ```shell
-  cd '/Users/jobs/Documents/Github/JobsGenesis/【MacOS】🧭对齐父Git子模块.command'
   chmod +x './【MacOS】🧭对齐父Git子模块.command'
   './【MacOS】🧭对齐父Git子模块.command'
   ```
 
-- 脚本会先展示本 README，按回车后进入检查流程。
+- 脚本会先展示内置自述，按回车后进入检查流程。
 - 真正执行修复前还会二次询问：直接回车跳过；输入任意字符后回车才执行。
 
 ## 四、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
@@ -60,7 +60,7 @@
 
 ```mermaid
 flowchart TD
-  A["启动脚本"] --> B["展示 README 并等待确认"]
+  A["启动脚本"] --> B["展示内置自述并等待确认"]
   B --> C["检查 Git 和父仓库"]
   C --> D["扫描父仓库第一层真实子 Git 目录"]
   D --> E["读取每个子 Git 的 origin URL"]
@@ -80,7 +80,7 @@ flowchart TD
 - 日志会同步写入：
 
   ```shell
-  /tmp/【MacOS】🧭对齐父Git子模块.log
+  $TMPDIR/【MacOS】🧭对齐父Git子模块.log
   ```
 
 - 如果修复中断，优先查看日志里的最后一段错误输出。
