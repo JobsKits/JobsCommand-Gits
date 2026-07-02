@@ -1,4 +1,4 @@
-# `【MacOS】🧭对齐父Git子模块.command`
+# `【MacOS】🧭更新引用Git父仓=>子仓.command`
 
 ![Jobs出品，必属精品](https://picsum.photos/1500/400)
 
@@ -37,18 +37,18 @@
 - 双击运行：
 
   ```shell
-  【MacOS】🧭对齐父Git子模块.command
+  【MacOS】🧭更新引用Git父仓=>子仓.command
   ```
 
 - 终端运行：
 
   ```shell
-  chmod +x './【MacOS】🧭对齐父Git子模块.command'
-  './【MacOS】🧭对齐父Git子模块.command'
+  chmod +x './【MacOS】🧭更新引用Git父仓=>子仓.command'
+  './【MacOS】🧭更新引用Git父仓=>子仓.command'
   ```
 
 - 脚本会先展示内置自述，按回车后进入检查流程。
-- 真正执行修复前还会二次询问：直接回车跳过；输入任意字符后回车才执行。
+- 真正执行修复前还会二次询问：直接回车执行；输入任意字符后回车跳过。
 
 ## 四、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
@@ -80,7 +80,7 @@ flowchart TD
 - 日志会同步写入：
 
   ```shell
-  $TMPDIR/【MacOS】🧭对齐父Git子模块.log
+  $TMPDIR/【MacOS】🧭更新引用Git父仓=>子仓.log
   ```
 
 - 如果修复中断，优先查看日志里的最后一段错误输出。

@@ -1,6 +1,6 @@
 #!/bin/zsh
 # 脚本自述：
-# - 脚本名称：【MacOS】🧭对齐父Git子模块.command
+# - 脚本名称：【MacOS】🧭更新引用Git父仓=>子仓.command
 # - 核心用途：按磁盘真实子 Git 目录对齐父仓库 .gitmodules、gitlink 和本地 submodule 配置。
 # - 影响范围：可能修改父仓库 .gitmodules、索引 gitlink、本地 .git/config 和子目录 .git 指针。
 # - 运行提示：运行后会先打印内置自述；终端模式按回车确认后继续，按 Ctrl+C 可取消。
@@ -67,10 +67,10 @@ show_script_intro_and_wait() {
     clear
   fi
   print -r -- '============================== 脚本内置自述 =============================='
-  print -r -- '脚本名称：【MacOS】🧭对齐父Git子模块.command'
+  print -r -- '脚本名称：【MacOS】🧭更新引用Git父仓=>子仓.command'
   print -r -- '核心用途：按真实子 Git 目录对齐父 Git 的 .gitmodules、gitlink 和本地 submodule 配置。'
   print -r -- '影响范围：可能修改 .gitmodules、父仓库索引 gitlink、本地 .git/config 和子目录 .git 指针。'
-  print -r -- '运行策略：先展示当前真实子 Git 和 git status；二次确认默认跳过，输入任意字符后才执行修复。'
+  print -r -- '运行策略：先展示当前真实子 Git 和 git status；二次确认直接回车执行，输入任意字符后跳过修复。'
   print -r -- "目标父仓：${PARENT_REPO_DIR}"
   print -r -- "日志位置：${LOG_FILE}"
   print -r -- '取消方式：确认前按 Ctrl+C 终止，不会继续执行后续业务。'
@@ -82,12 +82,12 @@ show_script_intro_and_wait() {
   echo ""
   read -r "?👉 已了解脚本用途与影响，按回车继续；按 Ctrl+C 取消：" _
 }
-# 普通修复动作默认跳过，输入任意字符后才执行。
-ask_any_to_run() {
+# 修复动作默认执行，输入任意字符后跳过。
+ask_enter_to_run() {
   local message="$1"
   local answer=""
-  read -r "?${message}（直接回车跳过；输入任意字符后回车执行）：" answer
-  [[ -n "$answer" ]]
+  read -r "?${message}（直接回车执行；输入任意字符后回车跳过）：" answer
+  [[ -z "$answer" ]]
 }
 # 检查命令和父仓库环境是否满足修复条件。
 check_environment() {
@@ -429,7 +429,7 @@ run_business() {
   gray_echo "不会删除当前磁盘上的子 Git 目录；旧 gitlink 只会执行 git rm --cached。"
   echo ""
 
-  if ! ask_any_to_run "确认按当前磁盘子 Git 目录对齐父 Git 子模块吗？"; then
+  if ! ask_enter_to_run "确认按当前磁盘子 Git 目录对齐父 Git 子模块吗？"; then
     warn_echo "用户选择跳过修复。"
     return 0
   fi

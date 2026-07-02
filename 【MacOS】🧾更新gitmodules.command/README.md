@@ -1,4 +1,4 @@
-# `【MacOS】🧾更新Git子模块配置.command`
+# `【MacOS】🧾更新gitmodules.command`
 
 ![Jobs出品，必属精品](https://picsum.photos/1500/400)
 
@@ -32,20 +32,20 @@
 - 双击运行：
 
   ```shell
-  【MacOS】🧾更新Git子模块配置.command
+  【MacOS】🧾更新gitmodules.command
   ```
 
 - 终端运行：
 
   ```shell
-  chmod +x './【MacOS】🧾更新Git子模块配置.command'
-  './【MacOS】🧾更新Git子模块配置.command'
+  chmod +x './【MacOS】🧾更新gitmodules.command'
+  './【MacOS】🧾更新gitmodules.command'
   ```
 
 - 只预览，不落盘：
 
   ```shell
-  DRY_RUN=1 './【MacOS】🧾更新Git子模块配置.command'
+  DRY_RUN=1 './【MacOS】🧾更新gitmodules.command'
   ```
 
 - 脚本启动后会先展示内置自述，按回车后进入扫描流程。
@@ -56,7 +56,7 @@
 - 确认脚本所在目录或上一层目录是目标 Git 仓库根目录。
 - 确认需要写入 `.gitmodules` 的子 Git 都在父仓库第一层目录。
 - 确认每个子 Git 已配置 `remote.origin.url`；缺少 URL 的子目录不会写入 `.gitmodules`。
-- 如果你还需要同步父仓库 gitlink、本地 `.git/config` 或子目录 `.git` 指针，应使用 `【MacOS】🧭对齐父Git子模块.command`。
+- 如果你还需要同步父仓库 gitlink、本地 `.git/config` 或子目录 `.git` 指针，应使用 `【MacOS】🧭更新引用Git父仓=>子仓.command`。
 
 ## 五、流程图 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
@@ -79,7 +79,7 @@ flowchart TD
 - 日志会同步写入系统临时目录中的：
 
   ```shell
-  $TMPDIR/【MacOS】🧾更新Git子模块配置.log
+  $TMPDIR/【MacOS】🧾更新gitmodules.log
   ```
 
 - 如果脚本中断，优先查看日志最后一段输出。
@@ -100,7 +100,7 @@ flowchart TD
   git remote add origin git@github.com:JobsKits/仓库名.git
   ```
 
-- 如果你想把 `.gitmodules`、父仓库 gitlink、本地 `.git/config` 和子目录 `.git` 指针一起对齐，运行 `../【MacOS】🧭对齐父Git子模块.command/【MacOS】🧭对齐父Git子模块.command`。
+- 如果你想把 `.gitmodules`、父仓库 gitlink、本地 `.git/config` 和子目录 `.git` 指针一起对齐，运行 `../【MacOS】🧭更新引用Git父仓=>子仓.command/【MacOS】🧭更新引用Git父仓=>子仓.command`。
 - 如果只是想预览 `.gitmodules` 变化，使用 `DRY_RUN=1`。
 
 <a id="🔚" href="#前言" style="font-size:17px; color:green; font-weight:bold;">我是有底线的➤点我回到首页</a>
