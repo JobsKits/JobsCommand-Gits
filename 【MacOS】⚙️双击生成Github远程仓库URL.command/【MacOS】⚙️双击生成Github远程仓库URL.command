@@ -188,7 +188,7 @@ show_script_intro_and_wait() {
   print -r -- '取消方式：确认前按 Ctrl+C 终止，不会继续执行后续业务。'
   print -r -- '============================================================================'
   echo ""
-  read -r "?👉 已了解脚本用途与影响，按回车继续；按 Ctrl+C 取消：" _
+  read -r "?👉 已了解脚本用途与影响，按回车继续；按 Ctrl+C 取消：" _ || exit 1
 }
 # 执行已经拆分完成的独立业务步骤。
 run_original_logic() {
@@ -213,16 +213,16 @@ run_original_logic() {
 
   # Check if USERNAME variable is set, if not, prompt user for input
   if [ -z "$USERNAME" ]; then
-      read -p "Enter your GitHub username: " USERNAME
+      read "?Enter your GitHub username: " USERNAME
   fi
 
   # Check if TOKEN variable is set, if not, prompt user for input
   if [ -z "$TOKEN" ]; then
-      read -p "Enter your GitHub personal access token (with 'repo' scope): " TOKEN
+      read "?Enter your GitHub personal access token (with 'repo' scope): " TOKEN
   fi
 
   # Ask user for repository name
-  read -p "Enter repository name: " REPO_NAME
+  read "?Enter repository name: " REPO_NAME
 
   # Create a new repository using GitHub API
   RESPONSE=$(curl -X POST \
@@ -259,14 +259,10 @@ initialize_script_runtime() {
 }
 # 编排脚本的高层业务流程。
 main() {
-  # 展示脚本内置自述，并按运行入口完成防误触确认。
-  show_script_intro_and_wait
-  # 初始化 Shell 选项、日志、依赖和入口运行状态。
-  initialize_script_runtime
-  # 执行 run_original_logic 对应的核心业务步骤。
-  run_original_logic "$@"
-  # 输出脚本执行结果、摘要和日志位置。
-  success_echo "脚本执行结束。日志：$LOG_FILE"
+  show_script_intro_and_wait # 展示脚本内置自述，并按运行入口完成防误触确认。
+  initialize_script_runtime # 初始化 Shell 选项、日志、依赖和入口运行状态。
+  run_original_logic "$@" # 执行 run_original_logic 对应的核心业务步骤。
+  success_echo "脚本执行结束。日志：$LOG_FILE" # 输出脚本执行结果、摘要和日志位置。
 }
 
 main "$@"

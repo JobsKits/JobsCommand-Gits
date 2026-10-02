@@ -188,7 +188,7 @@ show_script_intro_and_wait() {
   print -r -- '取消方式：确认前按 Ctrl+C 终止，不会继续执行后续业务。'
   print -r -- '============================================================================'
   echo ""
-  read -r "?👉 已了解脚本用途与影响，按回车继续；按 Ctrl+C 取消：" _
+  read -r "?👉 已了解脚本用途与影响，按回车继续；按 Ctrl+C 取消：" _ || exit 1
 }
 # 执行已经拆分完成的独立业务步骤。
 run_original_logic() {
@@ -203,7 +203,7 @@ run_original_logic() {
   export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
   # ================================== 基础信息 ==================================
-  SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+  SCRIPT_PATH="${(%):-%x}"
   SCRIPT_BASENAME="$(basename "$SCRIPT_PATH")"
   LOG_FILE="${LOG_FILE:-/tmp/${SCRIPT_BASENAME}.log}"
 
@@ -619,7 +619,7 @@ EOF
 
     if [[ "${#rows[@]}" -eq 1 ]]; then
       info "仅发现 1 个嵌套 Git（无需 fzf）："
-      gray "${rows[0]//\t/ | }"
+      gray "${rows[1]//\t/ | }"
       note "是否继续处理该项？直接回车=继续；输入任意字符=返回上一步"
       local c=""
       read_tty c ""
@@ -627,7 +627,7 @@ EOF
         printf "%s" ""
         return 0
       fi
-      printf "%s" "$(printf "%s" "${rows[0]}" | cut -f1)"
+      printf "%s" "$(printf "%s" "${rows[1]}" | cut -f1)"
       return 0
     fi
 
@@ -895,14 +895,10 @@ initialize_script_runtime() {
 }
 # 编排脚本的高层业务流程。
 main() {
-  # 展示脚本内置自述，并按运行入口完成防误触确认。
-  show_script_intro_and_wait
-  # 初始化 Shell 选项、日志、依赖和入口运行状态。
-  initialize_script_runtime
-  # 执行 run_original_logic 对应的核心业务步骤。
-  run_original_logic "$@"
-  # 输出脚本执行结果、摘要和日志位置。
-  success_echo "脚本执行结束。日志：$LOG_FILE"
+  show_script_intro_and_wait # 展示脚本内置自述，并按运行入口完成防误触确认。
+  initialize_script_runtime # 初始化 Shell 选项、日志、依赖和入口运行状态。
+  run_original_logic "$@" # 执行 run_original_logic 对应的核心业务步骤。
+  success_echo "脚本执行结束。日志：$LOG_FILE" # 输出脚本执行结果、摘要和日志位置。
 }
 
 main "$@"
