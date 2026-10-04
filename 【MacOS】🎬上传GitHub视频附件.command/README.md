@@ -12,7 +12,7 @@
 
 **当前上传接口尚未实测。** 脚本直接请求 `https://uploads.github.com/user-attachments/assets`；本说明描述现有实现，不保证该端点接受当前请求或返回预期的 `.url` 字段。真实上传、附件访问和 README 播放效果需要在目标仓库验证。
 
-## 一、用途与能力边界
+## 一、用途与能力边界 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 适合为项目 README 准备演示视频附件链接。每次运行只处理一个本地文件。
 
@@ -28,7 +28,7 @@
 
 脚本只校验文件存在、可读、非空和扩展名，不检测视频编码、不压缩、不转码，也不提前校验平台大小限制。平台支持的附件格式、大小和访问规则以 [**GitHub 附件文档**](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files) 为准。
 
-## 二、执行前检查
+## 二、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 - 使用 macOS 终端和系统 `zsh`，确保网络能够访问 `github.com` 与 `uploads.github.com`。
 - 预先安装 `gh`。脚本会查找当前 `PATH` 和 Apple Silicon / Intel 的常见安装目录，但不会自动安装或升级工具。
@@ -56,9 +56,9 @@ gh auth login --hostname github.com --web
 
 登录行为与凭据保存方式参见 [**gh 登录手册**](https://cli.github.com/manual/gh_auth_login)。不要把 Token 写入脚本、README 或上传文件。
 
-## 三、运行方式
+## 三、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-### 3.1、双击或交互运行
+### 3.1、双击或交互运行 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 双击同目录的 `【MacOS】🎬上传GitHub视频附件.command`，或在本 README 所在目录执行：
 
@@ -76,7 +76,7 @@ zsh './【MacOS】🎬上传GitHub视频附件.command'
 
 5、成功后复制 URL，手动插入目标 README。剪贴板不可用时，从终端或日志复制。
 
-### 3.2、命令行传参
+### 3.2、命令行传参 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 脚本接受零个参数或恰好两个参数；只传一个参数或多传参数会报错。参数顺序固定为“仓库地址、本地视频路径”，没有 `--help` 或其它选项。
 
@@ -90,7 +90,7 @@ zsh './【MacOS】🎬上传GitHub视频附件.command' \
 
 **传入参数仍会等待首次回车确认**，不适合直接作为无人值守上传任务。
 
-### 3.3、仓库地址格式
+### 3.3、仓库地址格式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 | 格式 | 示例 |
 | --- | --- |
@@ -101,7 +101,7 @@ zsh './【MacOS】🎬上传GitHub视频附件.command' \
 
 支持去除仓库地址末尾的一个 `/` 和 `.git` 后缀。不接受 README 文件页、Issue 页、分支页面、带查询参数的地址或 `ssh://` 形式。
 
-## 四、URL 使用与执行流程
+## 四、URL 使用与执行流程 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 把实际返回的附件 URL 单独放入目标 README 的一段，前后保留空行。下面仅展示格式，示例地址不可播放：
 
@@ -133,7 +133,7 @@ flowchart TD
 
 参数、工具、登录或仓库检查失败时也会提前停止，不进入上传步骤。
 
-## 五、日志与文件结构
+## 五、日志与文件结构 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 ```text
 【MacOS】🎬上传GitHub视频附件.command/
@@ -145,20 +145,20 @@ flowchart TD
 
 日志包含业务提示、登录检查输出、API 错误，以及成功时的附件 URL。每次运行创建新日志；系统可能清理临时目录，需要排查时及时保存。
 
-## 六、上传与删除风险
+## 六、上传与删除风险 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 - 首次回车确认后，脚本可进入登录和远端上传流程；上传没有第二次 `YES` 确认。
 - 重复运行可能创建多个附件。网络中断或返回结果异常时，不能据此判断服务器一定没有收到文件，重试前先核实。
 - 删除本地视频或 README 中的链接，不应视为远端附件已删除。脚本没有删除接口；需要永久删除时，联系 [**GitHub Support**](https://support.github.com/)，提供附件 URL。相关说明见 [**GitHub 附件删除讨论**](https://github.com/orgs/community/discussions/153721)。
 - GitHub 工作人员曾说明，删除整个远端仓库会触发附件延迟清理；这是历史说明，不是即时删除承诺，也不应为了清理单个视频而删除仓库。参见 [**GitHub 私有附件讨论**](https://github.com/orgs/community/discussions/54551)。
 
-## 七、验证状态
+## 七、验证状态 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 - 已按现有源码核对参数、格式校验、登录与权限检查、日志命名、上传请求和剪贴板行为。
 - 已通过 `zsh -n` 静态语法检查；该检查不验证网络接口或真实上传能力。
 - 未执行真实登录、上传、删除或 README 播放测试。上传接口可用性、响应字段及附件访问行为尚未确认。
 
-## 八、常见问题
+## 八、常见问题 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 | 问题 | 排查方式 |
 | --- | --- |

@@ -10,7 +10,7 @@
 
 本工具用于清理 Git 子仓中的运行态跟踪记录，同时保留本地真实文件。执行前应先确认当前仓库范围和待处理路径。
 
-## 一、用途
+## 一、用途 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 这个工具用于处理“大 Git 管多个小 Git / 子模块”的仓库结构中，运行态目录被误加入 Git 跟踪的问题。
 
@@ -27,7 +27,7 @@
 
 ---
 
-## 二、运行方式
+## 二、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 双击运行：
 
@@ -49,7 +49,7 @@ DRY_RUN=1 ./'【MacOS】🧹清理Git子仓运行态记录.command/【MacOS】�
 
 ---
 
-## 三、注意事项
+## 三、注意事项 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 - 脚本不会创建提交，不会推送远端。
 - 脚本不会删除真实文件，只会让 Git 停止跟踪运行态文件。
