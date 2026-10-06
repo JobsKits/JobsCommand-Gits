@@ -7,14 +7,37 @@
 # - 运行：双击后输入两个参数，或通过命令行传入；先按回车确认，Ctrl+C 取消。
 
 # 展示上传范围与删除限制，确认前不执行任何写操作。
+# 仅渲染自述：标题红色加粗，编号正文蓝色常规字重；非彩色终端输出纯文本。
+jobs_intro_style() {
+  local intro_color=0
+  if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "${TERM:-}" != dumb ] &&
+     [ -z "${NO_COLOR+x}" ] && [ "${PLAIN_OUTPUT:-0}" != 1 ] &&
+     [ "${IS_SOURCETREE_RUNTIME:-0}" != 1 ]; then
+    intro_color=1
+  fi
+  /usr/bin/awk -v color="$intro_color" -v role="${1:-body}" '
+    BEGIN { esc = sprintf("%c", 27) }
+    {
+      gsub(esc "\\[[0-9;]*m", "")
+      gsub(/\\(033|e|x1[bB])\[[0-9;]*m/, "")
+      if (!color || $0 ~ /^[[:space:]]*$/) { print; next }
+      numbered = ($0 ~ /^[[:space:]➤ℹ🔹✔⚠]*([0-9]+[、.)）]|[0-9]+️⃣|[-•])/)
+      heading = ($0 ~ /^[[:space:]]*#{1,6}[[:space:]]/ || $0 ~ /[：:][[:space:]]*$/ || $0 ~ /^[[:space:]]*[=━─-]{3}/)
+      title = (!numbered && (role == "title" || heading))
+      if (role == "auto" && !seen && !numbered) title = 1
+      if ($0 !~ /^[[:space:]]*[=━─-]+[[:space:]]*$/) seen = 1
+      printf "%s%s%s\n", esc (title ? "[1;31m" : "[0;34m"), $0, esc "[0m"
+    }
+  '
+}
 show_script_intro_and_wait() {
-  print -r -- '🎬 上传 GitHub 视频附件'
-  print -r -- '输入 GitHub 仓库地址和本地视频路径，支持 MP4 / MOV / WEBM。'
-  print -r -- '将创建远端附件，返回 URL 并复制到剪贴板；重复上传会产生新附件。'
-  print -r -- '附件单独删除比较麻烦，请联系 GitHub Support：https://support.github.com/'
-  print -r -- 'GitHub 曾说明：删除整个远端仓库会触发延迟清理，不保证即时删除。'
-  print -r -- '删除本地项目文件夹、仓库中的视频或 README 链接，不等于删除附件。'
-  print -r -- '日志保存到系统临时目录；按 Ctrl+C 取消。'
+  print -r -- '🎬 上传 GitHub 视频附件' | jobs_intro_style body
+  print -r -- '输入 GitHub 仓库地址和本地视频路径，支持 MP4 / MOV / WEBM。' | jobs_intro_style body
+  print -r -- '将创建远端附件，返回 URL 并复制到剪贴板；重复上传会产生新附件。' | jobs_intro_style body
+  print -r -- '附件单独删除比较麻烦，请联系 GitHub Support：https://support.github.com/' | jobs_intro_style body
+  print -r -- 'GitHub 曾说明：删除整个远端仓库会触发延迟清理，不保证即时删除。' | jobs_intro_style body
+  print -r -- '删除本地项目文件夹、仓库中的视频或 README 链接，不等于删除附件。' | jobs_intro_style body
+  print -r -- '日志保存到系统临时目录；按 Ctrl+C 取消。' | jobs_intro_style body
   local answer
   IFS= read -r 'answer?按回车继续：' || exit 1
   [[ -z "$answer" ]] || exit 1
