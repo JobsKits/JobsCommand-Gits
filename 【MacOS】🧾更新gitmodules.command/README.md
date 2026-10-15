@@ -8,99 +8,109 @@
 
 ## 🔥 <font id=前言>前言</font>
 
-- 这个脚本用于按目标 Git 仓库第一层真实存在的子 Git 目录，刷新或生成父仓库 `.gitmodules`。
-- 脚本只负责 `.gitmodules` 配置内容，不自动执行 `git add`、`git commit`、`git push`，也不修改子仓库文件内容。
-- 脚本会自动定位目标仓库：如果脚本所在目录就是 Git 根目录，则处理当前目录；如果脚本放在“一脚本一目录”中，则处理上一层 Git 仓库。
+这个脚本把父仓第一层新增的独立 [**Git**](https://git-scm.com/) 仓库登记为子模块，一次运行完成 `.gitmodules`、父仓 gitlink、本地子模块配置与 Git 元数据归集。关联结果留在本地供检查，不创建提交或推送，也不访问远端。
+
+脚本可以直接放在父仓根目录，或放在父仓下一层的同名脚本目录中；目标目录根据脚本自身位置确定，与终端当前目录无关。
 
 ## 一、适用场景 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-- 父仓库已经存在多个第一层子 Git 目录，需要重新生成或刷新 `.gitmodules`。
-- `.gitmodules` 中存在旧 path，但当前只想先整理配置文件，不想同步修复 gitlink 或 `.git/modules`。
-- 某些子 Git 目录的 `branch` 配置需要按当前分支刷新。
-- 想先用 `DRY_RUN=1` 预览将要写入的 `.gitmodules` 内容。
+- 已把一个独立 Git 仓库放到父仓第一层，希望父仓通过子模块管理它。
+- 已有 `.gitmodules` 登记，但父仓尚未建立对应 gitlink，需要补齐关联。
+- 已登记子模块的工作目录仍保留 `.git` 文件夹，需要使用 Git 官方命令归集元数据。
+- 希望先预检关联计划，再决定是否执行。
 
-## 二、会修改什么 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+扫描只覆盖目标父仓的第一层真实子 Git 目录，不递归接管孙仓，不把普通目录初始化为仓库。
 
-- 会读取目标仓库第一层带 `.git` 的子目录。
-- 会读取每个子 Git 的 `remote.origin.url` 和当前分支；读取不到 URL 的子目录会提示并跳过。
-- 会保留旧 `.gitmodules` 中已存在的 submodule section 名和 branch 信息。
-- 会移除 `.gitmodules` 中已经不存在于磁盘真实子 Git 目录的旧 path。
-- 只会写入目标仓库根目录下的 `.gitmodules`；不会暂存、提交、推送，也不会修复父仓库索引里的 gitlink。
+## 二、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-## 三、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
-
-- 双击运行：
+- 双击同目录的 `【MacOS】🧾更新gitmodules.command`，或从终端运行：
 
   ```shell
-  【MacOS】🧾更新gitmodules.command
+  /bin/zsh './【MacOS】🧾更新gitmodules.command'
   ```
 
-- 终端运行：
+- 只预检并展示计划，兼容非交互环境：
 
   ```shell
-  chmod +x './【MacOS】🧾更新gitmodules.command'
-  './【MacOS】🧾更新gitmodules.command'
+  /bin/zsh './【MacOS】🧾更新gitmodules.command' --dry-run
   ```
 
-- 只预览，不落盘：
+  也可以使用环境变量：
 
   ```shell
-  DRY_RUN=1 './【MacOS】🧾更新gitmodules.command'
+  DRY_RUN=1 /bin/zsh './【MacOS】🧾更新gitmodules.command'
   ```
 
-- 脚本启动后会先展示内置自述，按回车后进入扫描流程。
-- 真正写入 `.gitmodules` 前会二次询问：直接回车跳过；输入任意字符后回车才执行。
+- 查看参数说明：
+
+  ```shell
+  /bin/zsh './【MacOS】🧾更新gitmodules.command' --help
+  ```
+
+正常执行先展示内置自述，按回车进入预检；展示关联计划后，直接回车跳过，输入任意非空字符后回车执行整套关联。确认前可按 `Ctrl+C` 取消，不需要再手动执行 `git add`、`git submodule init` 或 `git submodule absorbgitdirs`。
+
+普通执行必须在可交互终端中运行；自动检查使用 `--dry-run`。脚本不提供 `--repo` 参数，需要处理哪个父仓，就运行放在该父仓中的脚本副本。
+
+## 三、关联与保留规则 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+
+| 对象 | 处理规则 |
+| --- | --- |
+| 新增独立子仓 | 从其已有 `origin` 读取 URL，向 `.gitmodules` 增补登记；仅新 section 跟随当前分支，不推测地址。 |
+| 已有 `.gitmodules` | 保留原 section 名、URL、相对 URL、branch 和其它扩展配置；缺 URL 时从子仓 `origin` 补齐，不补加原本缺失的 branch；磁盘上暂缺的目录也保留登记。 |
+| 新增或缺失的 gitlink | 将子仓当前 `HEAD` 登记到父仓索引，作为待提交的子模块指针。 |
+| 已有 gitlink | 保留原指针，包括用户已经暂存的版本；不会随子仓当前 `HEAD` 自动升级。 |
+| 父仓本地配置 | 补齐缺失的子模块初始化登记，保留已有本地配置，不执行会覆盖 URL 的 `git submodule sync`。 |
+| 子仓远端与源码 | 保留原远端、分支、提交、工作区和索引，不提交子仓修改。 |
+| 子仓 Git 元数据 | 对需要归集的 `.git` 文件夹运行 `git submodule absorbgitdirs`，移入父仓实际 Git 目录下的 `modules/`，子仓根部改为 `.git` 指针文件。 |
+| 父仓其它暂存内容 | 原样保留，不进行全仓 `git add`。 |
+
+执行前会在父仓实际 Git 目录内建立独立备份，保存父仓索引、本地配置和 `.gitmodules`；执行后核验登记、gitlink、元数据指针和父子仓状态。备份不包含全部源码或整个子仓历史，不能替代日常仓库备份。
 
 ## 四、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-- 确认脚本所在目录或上一层目录是目标 Git 仓库根目录。
-- 确认需要写入 `.gitmodules` 的子 Git 都在父仓库第一层目录。
-- 确认每个子 Git 已配置 `remote.origin.url`；缺少 URL 的子目录不会写入 `.gitmodules`。
-- 如果你还需要同步父仓库 gitlink、本地 `.git/config` 或子目录 `.git` 指针，应使用 `【MacOS】🧭更新引用Git父仓=>子仓.command`。
+- 确认脚本位于目标父仓根目录，或其下一层的同名脚本目录中；运行环境需要可用的 `/bin/zsh` 和 `git`。
+- 新增子仓必须已有提交和可读取的 `origin` URL。尚未提交的空仓或缺少远端的子仓会阻断执行，应先在子仓中完成配置。
+- 待关联目录若已被父仓当作普通文件树跟踪，脚本会停止，不自动移除原索引内容。
+- 存在未解决冲突、关联配置不一致、父仓或子仓属于链接工作树、元数据目标被占用时，整次预检失败；子仓 `.git` 指向本父仓 `modules/` 之外的外部元数据也会阻断，不自动搬移、覆盖或合并。
+- 已受跟踪的 `.gitmodules` 工作区与暂存区内容不同会阻断执行；已经暂存且工作区内容一致时允许继续。`.gitmodules` 或已有 gitlink 被暂存删除时同样停止，保留用户原有删除选择。其它已有暂存内容保留。
+- 已有 gitlink 的版本推进需要自行审查和暂存；运行关联脚本不会把父仓指针自动更新到子仓最新版本。
 
-## 五、流程图 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+缺失目录的旧登记不会自动删除。需要移除子模块时，应单独确认目录、配置与索引的清理范围。
 
-```mermaid
-flowchart TD
-  A["启动脚本"] --> B["展示内置自述并等待确认"]
-  B --> C["定位目标 Git 仓库根目录"]
-  C --> D["读取旧 .gitmodules 配置"]
-  D --> E["扫描第一层真实子 Git 目录"]
-  E --> F["收集 URL 和分支"]
-  F --> G["展示扫描结果和计划 diff"]
-  G --> H{"用户输入任意字符执行？"}
-  H -->|否| I["跳过写入"]
-  H -->|是| J["刷新 .gitmodules"]
-  J --> K["输出 diff、git status 和日志位置"]
+## 五、日志、备份与失败处理 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+
+- 日志位于系统临时目录中的 `【MacOS】🧾更新gitmodules.<PID>.log`，按进程区分，实际路径会在运行时显示。
+- 执行前备份位于父仓实际 Git 目录内，实际备份路径会写入日志。
+- 预检发现问题时先处理报告中的冲突，再重跑预检，不要强行删除 `.git` 或 `modules/`。
+- 执行中失败会报告失败阶段和备份位置。已完成的本地步骤可能保留，脚本不会自动回滚源码；按日志核对当前状态和备份后再处理。
+- 预检模式不改父子仓关联配置、索引或 Git 元数据；`--help` 只显示说明。
+
+## 六、运行后检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+
+在目标父仓中检查：
+
+```shell
+git status --short
+git diff --cached -- .gitmodules
+git submodule status
 ```
 
-## 六、日志文件 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+新增关联已经暂存，仍需自行审查后决定是否提交、推送。若子仓有未提交内容，或当前检出提交与父仓保留的既有 gitlink 不同，父仓仍可能显示子模块有改动；关联脚本会保留这些状态。
 
-- 日志会同步写入系统临时目录中的：
+配套隔离回归使用 [**Python**](https://www.python.org) 标准库创建临时 Git 仓库，不在真实项目中执行关联。在本文目录运行：
 
-  ```shell
-  $TMPDIR/【MacOS】🧾更新gitmodules.log
-  ```
+```shell
+python3 './tests/test_association.py'
+```
 
-- 如果脚本中断，优先查看日志最后一段输出。
+也可以把其它脚本副本路径作为参数传入。35 项用例覆盖新增登记、脏工作区和索引保护、重复运行、工作树与元数据冲突、只读预览、失败中断和脚本锁清理；测试日志与临时仓库保留在输出显示的系统临时目录。
 
-## 七、风险说明 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## 七、常见问题 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-- 这个脚本不是纯查看脚本；确认执行后会改写 `.gitmodules`。
-- 写入前会展示计划 diff，默认直接回车会跳过，不会落盘。
-- 脚本不会删除子 Git 目录，不会改子仓库内容，不会自动提交或推送。
-- `.gitmodules` 更新后仍需要自行检查 `git status --short`，再决定是否暂存和提交。
-
-## 八、常见问题 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
-
-- 如果提示脚本不在 Git 仓库根目录，确认脚本目录或上一层目录是否存在 `.git`。
-- 如果提示某个子 Git 缺少 `origin URL`，进入对应子目录补齐远端：
-
-  ```shell
-  git remote add origin git@github.com:JobsKits/仓库名.git
-  ```
-
-- 如果你想把 `.gitmodules`、父仓库 gitlink、本地 `.git/config` 和子目录 `.git` 指针一起对齐，运行 `../【MacOS】🧭更新引用Git父仓=>子仓.command/【MacOS】🧭更新引用Git父仓=>子仓.command`。
-- 如果只是想预览 `.gitmodules` 变化，使用 `DRY_RUN=1`。
+- **为什么新增子仓没有被关联？** 先看日志确认它在父仓第一层、有独立 `.git`、已有提交且配置了 `origin`，再检查是否存在阻断条件。直接回车会跳过写入，执行时需要在计划确认处输入任意非空字符。
+- **为什么重新运行没有更新子仓版本？** 已有 gitlink 刻意保留，版本推进属于另一个待审查的变更；此脚本只补齐新增或缺失的关联。
+- **为什么已有相对 URL 没变成 `origin`？** 原 `.gitmodules` URL 会保留，适合同站相对地址或用户已有的克隆策略。
+- **为什么子仓 `.git` 变成文件？** 这是官方子模块元数据归集后的正常布局，独立历史、远端与分支仍然存在。
+- **能自动提交或推送吗？** 不能。关联只在本地执行，不联网，不创建提交，不推送父仓或子仓。
 
 <a id="🔚" href="#前言" style="font-size:17px; color:green; font-weight:bold;">我是有底线的➤点我回到首页</a>

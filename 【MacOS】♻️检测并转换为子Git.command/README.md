@@ -4,9 +4,11 @@
 
 [toc]
 
+> **Python 环境预检**：实际调用 [**Python**](https://www.python.org/) 前使用本文件内嵌的环境预检函数，通过 [**Homebrew**](https://brew.sh/) 管理运行时；脚本可单文件复制运行，不需要旁边的支持目录。终端自述确认后执行 `brew update` 更新本体及公式索引；只在指定公式 `python@3.13` 缺失、损坏或版本不满足 `3.11+` 时安装或修复，健康运行时直接复用。缺失 Homebrew 时强提示选安装路径：精确大写 `YES` 选系统标准目录，其它输入或回车选用户目录；失败停止，不自动换路。必需安装或修复直接回车执行，任意非空输入（含空格）取消。预检不执行全局 `brew upgrade`。
+
 ## 🔥 <font id=前言>前言</font>
 
-- 采用 Shell 脚本的原因：Shell 来自 [**macOS**](https://www.apple.com/macos/) 原生系统底层，虽然写法相对繁琐冗杂，但执行效率高，并且不需要额外介入 [**Ruby**](https://www.ruby-lang.org)、[**Python**](https://www.python.org) 等第三方运行环境，因此具备更好的移植性。
+- 脚本入口使用 macOS 原生 Shell；其中的解析、转换或服务功能需要下述已验证的 Python 运行时。
 
 - 本自述文件对应脚本：`【MacOS】♻️检测并转换为子Git.command`。
 - 脚本原始位置：`JobsGenesis@JobsCommand.Gits`。
@@ -25,7 +27,7 @@
 | 是否涉及 Homebrew | `是` |
 | 是否可能联网 | `是` |
 | 是否含高风险命令 | `是` |
-| zsh 静态检查 | `当前生成环境未执行，请在 macOS 上复核` |
+| zsh 静态检查 | `zsh -n 已通过；未执行真实安装、更新或业务` |
 
 ## 二、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
@@ -46,20 +48,14 @@ chmod +x './【MacOS】♻️检测并转换为子Git.command'
 - 增加 `SCRIPT_DIR` / `SCRIPT_PATH` 标准路径变量。
 - 使用 `main "$@"` 作为统一入口。
 - 原业务逻辑保留在 `run_original_logic` 模块内，方便后续继续拆分重构。
-- 注入 Homebrew 健康自检标准模块：架构判断、shellenv 注入、当前会话生效、可选更新。
+- 脚本内嵌 Homebrew 健康自检函数：架构判断、安装路径选择、shellenv 注入、当前会话生效和更新。
 - 已修正常见旧式升级交互文案与直接强制升级命令。
 
 ## 四、Homebrew 标准 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-若脚本涉及 Homebrew，统一遵循下面的健康标准：
-
-- 自动识别 `arm64` / `x86_64`。
-- Apple Silicon 优先使用 `$(brew --prefix)/bin/brew`。
-- Intel 优先使用 `$(brew --prefix)/bin/brew`。
-- 自动把 `brew shellenv` 写入当前 shell 对应配置文件。
-- 当前会话立即 `eval "$({brew_bin} shellenv)"` 生效。
-- 已安装时不强制升级，而是询问：**回车跳过，输入任意字符后回车升级**。
-- 健康更新顺序为：`brew update` → `brew upgrade` → `brew cleanup` → `brew doctor` → `brew -v`。
+- Python 运行前经终端确认执行内嵌 Homebrew 自检与 `brew update`；既有其它工具维护选项保留，不因目录只读而自动另装。
+- [**Homebrew**](https://brew.sh/) 安装路径由用户选择：已有可运行安装时复用；确实需要安装时先强提示，只有精确输入大写 `YES` 才选择系统标准目录，其它输入或直接回车选择当前用户的 `.local/homebrew`。`YES` 只表示选择路径，权限与密码由官方安装器实际处理；有管理员权限也可以选用户目录。选定路径失败立即停止，不自动切换；`Ctrl+C` / 输入结束取消整个任务。
+- 用户目录安装需要可用 Git 与 curl；后续系统级软件仍可能要求管理员权限。
 
 ## 五、注意事项 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
