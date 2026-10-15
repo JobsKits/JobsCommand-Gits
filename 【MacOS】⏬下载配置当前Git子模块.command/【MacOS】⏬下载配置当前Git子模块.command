@@ -1667,8 +1667,8 @@ run_original_logic() {
   ------------------------------------------------------------
   操作说明：
     - 按 ↑ / ↓ 移动光标
-    - 按 [Enter] 勾选 / 取消勾选当前项目
-    - 按 [Space] 确认当前勾选并开始同步
+    - 按 [回车 Enter] 勾选 / 取消勾选当前项目
+    - 最后按【空格键 Space】确认当前勾选并开始同步（无需再按回车）
     - 第一项“全选”会一次勾选 / 取消全部 SUBMODULE_REPO_URLS 项目
     - 按 ← 返回上一页
 
@@ -1745,6 +1745,8 @@ EOF2
 
     printf '%s\n' '------------------------------------------------------------'
     printf '已勾选：%s / %s\n' "${#SUBMODULE_PICKED[@]}" "${#CONFIG_PATHS[@]}"
+    printf '%s\n' '操作：↑/↓ 移动，回车(Enter) 勾选/取消，← 返回上一页'
+    printf '%s\n' '👉 最后按【空格键 Space】确认已勾选项目并开始同步（无需再按回车）。'
   }
   # 封装 read_submodule_picker_key 对应的独立处理逻辑。
   read_submodule_picker_key() {
@@ -1839,7 +1841,7 @@ EOF2
           done
 
           if [[ ${#selected_paths[@]} -eq 0 ]]; then
-            message="⚠️  还没有勾选任何子模块：请先用 Enter 勾选，再按 Space 确认"
+            message="⚠️  还没有勾选任何子模块：请先用回车(Enter)勾选，再按空格键(Space)确认"
             continue
           fi
 
@@ -1862,7 +1864,7 @@ EOF2
           return 130
           ;;
         *)
-          message="提示：↑/↓ 移动，Enter 勾选/取消，Space 确认，← 返回上一页"
+          message="提示：↑/↓ 移动，回车(Enter)勾选/取消，空格键(Space)确认并开始同步，← 返回上一页"
           ;;
       esac
     done
