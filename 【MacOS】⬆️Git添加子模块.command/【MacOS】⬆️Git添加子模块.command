@@ -565,13 +565,13 @@ EOF
 
     git add .gitmodules 2>/dev/null || true
   }
-  # 5) 添加子模块（此时就在拉取远端）
+  # 5) 同名子仓跟随父仓默认远端，目标平台须已存在相应仓库。
   add_submodules() {
-    git submodule add -b main https://github.com/JobsKits/JobsCommand-Flutter.git  ./JobsGenesis@JobsCommand.Flutter
-    git submodule add -b main https://github.com/JobsKits/JobsCommand-iOS.git      ./JobsGenesis@JobsCommand.iOS
-    git submodule add -b main https://github.com/JobsKits/JobsCommand-Gits.git     ./JobsGenesis@JobsCommand.Gits
-    git submodule add -b main https://github.com/JobsKits/JobsCommand-Others.git   ./JobsGenesis@JobsCommand.Others
-    git submodule add -b main https://github.com/JobsKits/JobsSh.git               ./JobsGenesis@JobsSh
+    git submodule add -b "${SUBMODULE_BRANCH:-main}" ../JobsCommand-Flutter.git ./JobsGenesis@JobsCommand.Flutter
+    git submodule add -b "${SUBMODULE_BRANCH:-main}" ../JobsCommand-iOS.git ./JobsGenesis@JobsCommand.iOS
+    git submodule add -b "${SUBMODULE_BRANCH:-main}" ../JobsCommand-Gits.git ./JobsGenesis@JobsCommand.Gits
+    git submodule add -b "${SUBMODULE_BRANCH:-main}" ../JobsCommand-Others.git ./JobsGenesis@JobsCommand.Others
+    git submodule add -b "${SUBMODULE_BRANCH:-main}" ../JobsSh.git ./JobsGenesis@JobsSh
   }
   # 6) 同步子模块记录
   sync_submodules() {

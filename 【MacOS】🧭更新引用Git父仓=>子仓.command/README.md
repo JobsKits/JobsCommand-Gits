@@ -17,6 +17,35 @@
   ..
   ```
 
+<strong id="submodule-quick-look">先看例子：修复本地关联，同时保留多平台地址</strong>
+
+以下用 `JobsGenesis` 父仓中已有的 `JobsCommand@Flutter` 子模块演示本通用工具的地址规则。以前固定到 GitHub：
+
+```ini
+url = https://github.com/JobsKits/JobsCommand-Flutter.git
+```
+
+共享配置使用相对地址后：
+
+```ini
+[submodule "JobsCommand@Flutter"]
+    path = JobsCommand@Flutter
+    url = ../JobsCommand-Flutter.git
+    branch = main
+```
+
+同一条 `url` 根据父仓默认 remote 地址解析，支持 [**Gitee**](https://gitee.com) 和任意自建平台；自建地址仅作示例：
+
+| 父仓默认 remote 地址 | 子仓实际地址 |
+| --- | --- |
+| `https://github.com/JobsKits/JobsGenesis.git` | `https://github.com/JobsKits/JobsCommand-Flutter.git` |
+| `https://gitee.com/JobsGo/JobsGenesis.git` | `https://gitee.com/JobsGo/JobsCommand-Flutter.git` |
+| `ssh://git@git.example.com:2222/team/tools/JobsGenesis.git` | `ssh://git@git.example.com:2222/team/tools/JobsCommand-Flutter.git` |
+
+`path` 是本地目录名，`url` 中必须写真实远端仓名；`JobsCommand@Flutter` 与 `JobsCommand-Flutter.git` 可以不同。目标平台必须已有子仓镜像，并包含父仓 gitlink 指定的提交。
+
+本脚本负责**修复目录与 Git 元数据的对应关系**：已有条目保留 section、URL、branch 和扩展字段；磁盘上已不存在的旧 path 按工具职责移除。新增登记满足全部已配置线路的同站、同命名空间、子仓同名条件时才写相对 URL，否则保留明确原地址。子仓真实 `origin` 仍单独保存，不能把共享的 `../JobsCommand-Flutter.git` 当成它的远端地址。修复不提交、不推送，也不会批量迁移存量固定平台 URL。
+
 ## 一、适用场景 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 - 当前磁盘目录名已经是你想要的最终形态，但普通 `git status` 输出和真实目录不一致。
@@ -26,7 +55,9 @@
 
 ## 二、会修改什么 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-- 会按当前真实子 Git 目录重写父仓库 `.gitmodules`。
+- 会按当前真实子 Git 目录对齐父仓库 `.gitmodules` 的路径清单；按 path 找到仍存在的 section 后，保留其名称、URL、branch 和扩展字段，包括原本未设置 branch 的状态。磁盘上已经不存在的旧 path 继续按本工具的目录对齐职责移除。
+- 新增登记只在父子全部已配置托管线路逐一同站同命名空间、子仓同名时使用 `../仓库名.git`，从父仓默认远端继承站点和传输方式。适用于 GitHub、[**Gitee**](https://gitee.com) 和其它已配置平台；支持 HTTPS、scp 风格 SSH、带端口的 `ssh://` 与多层命名空间。
+- 跨命名空间、平台异名、映射不全、服务端口或协议无法证明一致时保留明确原地址并提示；本地文件路径和未知协议不转换。脚本不根据目录名猜地址，也不创建远端镜像。子仓真实 `origin` 与 `.gitmodules` 登记 URL 分开保存，修复 Git 元数据不会把登记用的 `../仓库名.git` 写成子仓 `origin`。
 - 会修正子 Git 目录里的 `.git` 指针文件，例如把旧指向改成当前目录名对应的 `.git/modules/当前目录名`。
 - 会清理父仓库索引里已经不存在于磁盘上的旧 gitlink。
 - 会重新执行 `git submodule init` 和 `git submodule sync --recursive`，让本地 `.git/config` 跟 `.gitmodules` 对齐。
@@ -48,7 +79,7 @@
   ```
 
 - 脚本会先展示内置自述，按回车后进入检查流程。
-- 真正执行修复前还会二次询问：直接回车执行；输入任意字符后回车跳过。
+- 真正执行修复前还会二次询问：直接回车跳过；输入任意字符后回车执行。
 
 ## 四、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
@@ -68,7 +99,7 @@ flowchart TD
   F --> G{"用户输入任意字符执行？"}
   G -->|否| H["跳过修复"]
   G -->|是| I["修正子目录 .git 指针"]
-  I --> J["按真实目录重写 .gitmodules"]
+  I --> J["对齐路径并保留已有 URL、分支及扩展字段"]
   J --> K["移除旧 gitlink 并暂存当前 gitlink"]
   K --> L["同步 .git/config 与子模块配置"]
   L --> M["校验磁盘目录 / .gitmodules / gitlink"]

@@ -215,6 +215,76 @@ class AssociationTests(unittest.TestCase):
         self.assertEqual("keep me\n", (child / "未跟踪文件.txt").read_text())
         self.assertEqual(before_parent_head, self.head(self.parent))
 
+    def check_new_url(self, parent_urls: list[str], child_urls: list[str], expected: str) -> str:
+        """Exercise URL selection through a real association without any network access."""
+        child = self.child("URL child")
+        for repo, urls in [(self.parent, parent_urls), (child, child_urls)]:
+            self.git(repo, "remote", "remove", "origin")
+            for number, url in enumerate(urls):
+                self.git(repo, "remote", "add", "origin" if number == 0 else f"mirror{number}", url)
+        original_remotes = self.git(child, "remote", "-v")
+        code, output = self.run_script()
+        self.assertEqual(0, code, output)
+        self.assertEqual(expected, self.git(self.parent, "config", "-f", ".gitmodules", "submodule.URL child.url"))
+        self.assertEqual(original_remotes, self.git(child, "remote", "-v"))
+        self.assert_linked(child)
+        return output
+
+    def test_new_url_follows_all_configured_platforms(self) -> None:
+        self.check_new_url(
+            ["https://github.example/Team/Parent.git", "git@gitee.example:Mirror/Parent.git", "ssh://git@code.example:2222/group/subgroup/Parent.git"],
+            ["git@github.example:Team/Child.git", "https://gitee.example/Mirror/Child", "ssh://git@code.example:2222/group/subgroup/Child.git"],
+            "../Child.git",
+        )
+
+    def test_new_url_supports_nested_namespace_and_explicit_ssh_port(self) -> None:
+        self.check_new_url(
+            ["ssh://git@code.example:2222/group/subgroup/Parent.git"],
+            ["ssh://git@code.example:2222/group/subgroup/Child.git"], "../Child.git",
+        )
+
+    def test_new_url_preserves_repository_name_difference_between_platforms(self) -> None:
+        origin = "https://github.example/Team/Child.git"
+        output = self.check_new_url(
+            ["https://github.example/Team/Parent.git", "git@gitee.example:Mirror/Parent.git"],
+            [origin, "git@gitee.example:Mirror/renamed-child.git"], origin,
+        )
+        self.assertIn("保留明确原地址", output)
+
+    def test_new_url_preserves_cross_namespace_source(self) -> None:
+        origin = "https://github.example/Upstream/Child.git"
+        self.check_new_url(["https://github.example/Team/Parent.git"], [origin], origin)
+
+    def test_new_url_preserves_source_when_a_parent_platform_has_no_child_mapping(self) -> None:
+        origin = "https://github.example/Team/Child.git"
+        self.check_new_url(
+            ["https://github.example/Team/Parent.git", "git@gitee.example:Mirror/Parent.git"], [origin], origin,
+        )
+
+    def test_new_url_preserves_explicit_local_path(self) -> None:
+        origin = str(self.sandbox / "local Child.git")
+        self.check_new_url([str(self.sandbox / "local Parent.git")], [origin], origin)
+
+    def test_new_url_preserves_unknown_protocol(self) -> None:
+        origin = "git://code.example/Team/Child.git"
+        self.check_new_url(["git://code.example/Team/Parent.git"], [origin], origin)
+
+    def test_new_url_preserves_different_ssh_endpoints(self) -> None:
+        origin = "ssh://git@code.example:2223/Team/Child.git"
+        self.check_new_url(["ssh://git@code.example:2222/Team/Parent.git"], [origin], origin)
+
+    def test_existing_absolute_url_is_preserved_when_relative_would_be_possible(self) -> None:
+        child = self.child()
+        origin = self.git(child, "remote", "get-url", "origin")
+        self.register(child, section="custom absolute", url=origin)
+        self.git(self.parent, "config", "-f", ".gitmodules", "submodule.custom absolute.branch", "release")
+        self.git(self.parent, "config", "-f", ".gitmodules", "submodule.custom absolute.update", "none")
+        self.git(self.parent, "add", ".gitmodules")
+        before = (self.parent / ".gitmodules").read_bytes()
+        code, output = self.run_script()
+        self.assertEqual(0, code, output)
+        self.assertEqual(before, (self.parent / ".gitmodules").read_bytes())
+
     def test_existing_gitmodules_without_gitlink_is_repaired(self) -> None:
         child = self.child()
         self.git(self.parent, "config", "-f", ".gitmodules", "submodule.existing name.path", child.name)

@@ -10,10 +10,41 @@
 
 - 本自述文件对应脚本：`【MacOS】⏬下载配置当前Git子模块.command`。
 - 脚本原始位置：`JobsGenesis@JobsCommand.Gits`。
-- 脚本定位：处理 Git / GitHub / 子模块相关自动化。
+- 脚本定位：按父仓选定远端下载、登记和同步 Git 子模块。
 - 本次已按 Jobs 标准升级：`# shell: zsh`、README 防误触、彩色日志、结构化入口、`main "$@"` 收口。
 - 普通安装 / 更新 / 升级交互统一为：**回车跳过，输入任意字符后回车执行**。
 - 危险操作不应该靠回车默认执行；涉及破坏性修改时，应单独输入 `YES` 确认。
+
+<strong id="submodule-quick-look">先看例子：同一份子模块配置，跟着父仓走不同平台</strong>
+
+以下用 `JobsGenesis` 父仓中已有的 `JobsCommand@Flutter` 子模块演示本通用工具的地址规则。
+
+以前固定到 [**GitHub**](https://github.com)：
+
+```ini
+url = https://github.com/JobsKits/JobsCommand-Flutter.git
+```
+
+共享配置使用相对地址后：
+
+```ini
+[submodule "JobsCommand@Flutter"]
+    path = JobsCommand@Flutter
+    url = ../JobsCommand-Flutter.git
+    branch = main
+```
+
+同一条 `url` 根据父仓地址解析，支持 [**Gitee**](https://gitee.com) 和任意自建平台；自建地址仅作示例：
+
+| 所选父仓 remote 地址 | 子仓实际地址 |
+| --- | --- |
+| `https://github.com/JobsKits/JobsGenesis.git` | `https://github.com/JobsKits/JobsCommand-Flutter.git` |
+| `https://gitee.com/JobsGo/JobsGenesis.git` | `https://gitee.com/JobsGo/JobsCommand-Flutter.git` |
+| `ssh://git@git.example.com:2222/team/tools/JobsGenesis.git` | `ssh://git@git.example.com:2222/team/tools/JobsCommand-Flutter.git` |
+
+`path` 是本地目录名，`url` 中必须写真实远端仓名；`JobsCommand@Flutter` 与 `JobsCommand-Flutter.git` 可以不同。目标平台必须已有子仓镜像，并包含父仓 gitlink 指定的提交。
+
+本下载脚本用 `REMOTE_NAME` 选择父仓线路，默认 `origin`；例如父仓已有 `gitee` remote 时，`REMOTE_NAME=gitee` 让相对 URL 按该地址解析。已有绝对 URL 例外仍按其明确地址下载，脚本保留它，不会因选了 `gitee` 就强行替换。新登记缺少目标平台真实地址证据时会停止；完整参数见[多平台子模块地址](#submodule-address-rules)。
 
 ## 一、脚本用途 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
@@ -25,7 +56,7 @@
 | 是否涉及 Homebrew | `是` |
 | 是否可能联网 | `是` |
 | 是否含高风险命令 | `是` |
-| zsh 静态检查 | `当前生成环境未执行，请在 macOS 上复核` |
+| zsh 静态检查 | `已通过 zsh -n，未执行真实下载` |
 
 ## 二、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
@@ -36,7 +67,7 @@ chmod +x './【MacOS】⏬下载配置当前Git子模块.command'
 './【MacOS】⏬下载配置当前Git子模块.command'
 ```
 
-脚本启动后会先显示本 README，并等待回车继续，避免误触执行。
+脚本启动后会先显示内置自述，并等待回车继续，避免误触执行。
 
 进入“选择指定子模块同步（可多选）”后，用 ↑ / ↓ 移动，按回车（Enter）勾选或取消项目；最后按 **空格键（Space）确认并开始同步**，无需再按回车。列表底部会持续显示操作提示；按 ← 返回上一页。
 
@@ -69,7 +100,7 @@ chmod +x './【MacOS】⏬下载配置当前Git子模块.command'
 
 ```mermaid
 graph TD
-    A([开始]) --> B[显示 README 并等待回车]
+    A([开始]) --> B[显示内置自述并等待回车]
     B --> C[初始化脚本路径与日志]
     C --> D{是否涉及 Homebrew 或依赖工具}
     D --> |是| E[执行标准自检 / 可选升级]
@@ -81,5 +112,23 @@ graph TD
     H --> I[执行任务]
     I --> J([结束])
 ```
+
+## 七、<span id="submodule-address-rules">多平台子模块地址</span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+
+- 支持 [**GitHub**](https://github.com)、[**Gitee**](https://gitee.com)、[**GitLab**](https://about.gitlab.com) 和自建 Git 服务器；接受 HTTPS、`git@host:namespace/repo.git` 和 `ssh://git@host:端口/namespace/repo.git`，保留嵌套 namespace 与显式端口。配置中禁止携带 HTTP 用户凭据或 SSH 密码。
+- `REMOTE_NAME` 默认 `origin`。已有 `.gitmodules` 的 URL、分支、缺省分支和扩展字段保持原样；`../真实仓名.git` 随所选父 remote 的平台、namespace、协议与端口解析，仓名不从本地目录猜测。
+- 新条目依据真实子仓 remote 与父 remote 的对应关系生成相对 URL。已知镜像仓名不同、跨组织或端口不匹配时保留已确认的绝对地址；缺少目标平台地址证据时停止并提示在 `.gitmodules` 配置真实 URL，不自动退回其它平台。
+- 递归同步逐层使用各自父仓地址。绝对子仓下面的相对子模块，以该绝对子仓为基准继续解析。
+- `GIT_URL_STYLE=auto` 保留实际地址；显式指定 `https` 或 `ssh` 只转换无歧义地址，无法推断跨协议端口时停止。`AUTO_PARENT_COMMIT` 默认 `1`，`AUTO_PARENT_PUSH` 默认 `0`；需要只同步并保留修改待检查时，将自动提交设为 `0`。
+
+父仓已配置名为 `gitee` 的 remote 时，可以在脚本所在目录运行：
+
+```shell
+REMOTE_NAME=gitee \
+AUTO_PARENT_COMMIT=0 \
+./【MacOS】⏬下载配置当前Git子模块.command
+```
+
+普通 `git clone --recurse-submodules` 由 Git 依据父仓默认 remote 解析相对 URL；`REMOTE_NAME` 是本脚本的线路选择参数。
 
 <a id="🔚" href="#前言" style="font-size:17px; color:green; font-weight:bold;">我是有底线的➤点我回到首页</a>

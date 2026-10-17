@@ -12,6 +12,35 @@
 
 脚本可以直接放在父仓根目录，或放在父仓下一层的同名脚本目录中；目标目录根据脚本自身位置确定，与终端当前目录无关。
 
+<strong id="submodule-quick-look">先看例子：新增关联时，怎样登记成多平台可用的地址</strong>
+
+以下用 `JobsGenesis` 父仓中已有的 `JobsCommand@Flutter` 子模块演示本通用工具的地址规则。以前固定到 [**GitHub**](https://github.com)：
+
+```ini
+url = https://github.com/JobsKits/JobsCommand-Flutter.git
+```
+
+确认各平台映射满足条件后，共享配置使用相对地址：
+
+```ini
+[submodule "JobsCommand@Flutter"]
+    path = JobsCommand@Flutter
+    url = ../JobsCommand-Flutter.git
+    branch = main
+```
+
+同一条 `url` 根据父仓默认 remote 地址解析，支持 [**Gitee**](https://gitee.com) 和任意自建平台；自建地址仅作示例：
+
+| 父仓默认 remote 地址 | 子仓实际地址 |
+| --- | --- |
+| `https://github.com/JobsKits/JobsGenesis.git` | `https://github.com/JobsKits/JobsCommand-Flutter.git` |
+| `https://gitee.com/JobsGo/JobsGenesis.git` | `https://gitee.com/JobsGo/JobsCommand-Flutter.git` |
+| `ssh://git@git.example.com:2222/team/tools/JobsGenesis.git` | `ssh://git@git.example.com:2222/team/tools/JobsCommand-Flutter.git` |
+
+`path` 是本地目录名，`url` 中必须写真实远端仓名；`JobsCommand@Flutter` 与 `JobsCommand-Flutter.git` 可以不同。目标平台必须已有子仓镜像，并包含父仓 gitlink 指定的提交。
+
+本脚本负责**增补关联**：新增条目只有在父子全部已配置线路逐一同站、同命名空间且子仓名一致时，才登记相对 URL；条件不满足则保留明确原地址。已有 section、URL、branch 和扩展字段保持原样，不会把旧的固定 GitHub URL 批量改成相对地址，也不会把共享相对 URL 写回子仓真实 `origin`。登记过程不联网、不提交、不推送；具体保留范围见后文。
+
 ## 一、适用场景 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 - 已把一个独立 Git 仓库放到父仓第一层，希望父仓通过子模块管理它。
@@ -55,7 +84,7 @@
 
 | 对象 | 处理规则 |
 | --- | --- |
-| 新增独立子仓 | 从其已有 `origin` 读取 URL，向 `.gitmodules` 增补登记；仅新 section 跟随当前分支，不推测地址。 |
+| 新增独立子仓 | 从已有 `origin` 读取明确 URL；只有父子全部已配置线路逐一同站同命名空间、子仓名称一致时，登记为 `../仓库名.git`；仅新 section 跟随当前分支。 |
 | 已有 `.gitmodules` | 保留原 section 名、URL、相对 URL、branch 和其它扩展配置；缺 URL 时从子仓 `origin` 补齐，不补加原本缺失的 branch；磁盘上暂缺的目录也保留登记。 |
 | 新增或缺失的 gitlink | 将子仓当前 `HEAD` 登记到父仓索引，作为待提交的子模块指针。 |
 | 已有 gitlink | 保留原指针，包括用户已经暂存的版本；不会随子仓当前 `HEAD` 自动升级。 |
@@ -65,6 +94,12 @@
 | 父仓其它暂存内容 | 原样保留，不进行全仓 `git add`。 |
 
 执行前会在父仓实际 Git 目录内建立独立备份，保存父仓索引、本地配置和 `.gitmodules`；执行后核验登记、gitlink、元数据指针和父子仓状态。备份不包含全部源码或整个子仓历史，不能替代日常仓库备份。
+
+共享相对 URL 会继承父仓默认远端的站点、命名空间和传输方式，适用于 [**GitHub**](https://github.com)、[**Gitee**](https://gitee.com) 或其它已配置托管平台；平台之间的命名空间可以不同，但每个平台上的父子仓必须同命名空间且子仓名称一致。检测支持 HTTPS、scp 风格 SSH 和带端口的 `ssh://`，包括多层命名空间；自定义端口和协议无法证明属于同一服务时不转换。
+
+跨命名空间、某线路缺少映射、两平台子仓异名、本地文件路径或未知协议均保留明确原地址，并在计划日志中提示。脚本不创建镜像仓库，不根据目录名猜远端，也不验证服务端是否保存了父仓 gitlink 对应的提交；受限环境仍需要先把子仓及指定提交同步到可访问的平台。已有绝对 URL 和原本缺失的 branch 保持原样，修改存量登记须单独审查。
+
+`JobsBaseConfig` 根目录保留的旧入口只负责增量写入 `.gitmodules`，不暂存 gitlink、不初始化或归集元数据；同样保留已有 section、URL、branch、扩展字段及暂缺工作目录的登记，并采用上述新增 URL 规则。其只读入口为 `DRY_RUN=1`，不支持这里的 `--dry-run` 参数。
 
 ## 四、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
@@ -103,7 +138,13 @@ git submodule status
 python3 './tests/test_association.py'
 ```
 
-也可以把其它脚本副本路径作为参数传入。35 项用例覆盖新增登记、脏工作区和索引保护、重复运行、工作树与元数据冲突、只读预览、失败中断和脚本锁清理；测试日志与临时仓库保留在输出显示的系统临时目录。
+也可以把其它完整关联脚本副本路径作为参数传入。44 项用例覆盖新增登记、多平台 URL、歧义地址回退、脏工作区和索引保护、重复运行、工作树与元数据冲突、只读预览、失败中断和脚本锁清理；测试日志与临时仓库保留在输出显示的系统临时目录。
+
+以下隔离回归同时核对 6 份登记入口与 5 份引用修复入口的 URL 判断、旧入口增量保留、section 与 URL / branch / 扩展字段保留，以及真实 origin 和共享登记 URL 的边界：
+
+```shell
+python3 './tests/test_url_writers.py'
+```
 
 ## 七、常见问题 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
