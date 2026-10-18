@@ -265,7 +265,7 @@ is_git_worktree() { return 1; }
 is_dir_empty() { return 0; }
 success_echo() { print UNEXPECTED_SUCCESS; }
 run_cmd() {
-  if [[ "$1 $2" == 'rm -rf' ]]; then print EXPECTED_REMOVE_FAILURE; return 37; fi
+  if [[ "$1" == rmdir ]]; then print EXPECTED_REMOVE_FAILURE; return 37; fi
   print UNEXPECTED_REGISTER
   return 0
 }

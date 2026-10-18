@@ -195,7 +195,10 @@ AUTO_PARENT_PUSH=0
                 fixture = self.fixture(f"first-{index}")
                 parent = fixture["parent"]
                 child = parent / "Selected child"
-                self.shell(source, fixture, "remove_worktree_dir_safely 'Selected child'\nsync_selected_submodules_to_latest 'Selected child'\n", recursive=0)
+                cache = Path(self.git(child, 'rev-parse', '--absolute-git-dir'))
+                self.git(parent, 'submodule', 'deinit', '-f', '--', 'Selected child')
+                cache.rename(fixture['case'] / 'saved-selected-cache')
+                self.shell(source, fixture, "sync_selected_submodules_to_latest 'Selected child'\n", recursive=0)
                 self.assertEqual(fixture["child_latest"], self.git(child, "rev-parse", "HEAD"))
                 self.assertFalse((child / "中 child/.git").exists())
                 config = Path(self.git(child, "rev-parse", "--absolute-git-dir")) / "config"
@@ -214,7 +217,7 @@ AUTO_PARENT_PUSH=0
                 self.assertEqual(fixture["child_latest"], self.git(child, "rev-parse", "HEAD"))
                 self.assertEqual(before, {repo: self.snapshot(repo) for repo in descendants})
 
-    def test_dirty_leaf_stops_ancestor_updates_and_full_deletion_preserves_data(self) -> None:
+    def test_dirty_leaf_without_tty_stops_ancestor_updates_and_preserves_data(self) -> None:
         for index, source in enumerate(SOURCES):
             with self.subTest(script=source):
                 fixture = self.fixture(f"dirty-{index}", initialized=True)
@@ -226,8 +229,6 @@ AUTO_PARENT_PUSH=0
                 before = {repo: self.snapshot(repo) for repo in (child, middle, leaf)}
                 output = self.shell(source, fixture, r'''
 if sync_selected_submodules_to_latest 'Selected child'; then exit 91; fi
-SUBMODULE_RECURSIVE=0
-if remove_worktree_dir_safely 'Selected child'; then exit 92; fi
 ''')
                 self.assertIn("尚未提交", output)
                 self.assertEqual("uncommitted user work\n", dirty.read_text(encoding="utf-8"))
@@ -264,7 +265,7 @@ if remove_worktree_dir_safely 'Selected child'; then exit 92; fi
                 self.assertNotIn("中 child 已浅同步", output)
                 self.assertFalse((fixture["parent"] / "Selected child/中 child/叶 child/.git").exists())
 
-    def test_missing_worktree_with_retained_cache_stops_before_clone_and_preserves_cache(self) -> None:
+    def test_missing_worktree_restores_from_retained_cache_without_reclone(self) -> None:
         for index, source in enumerate(SOURCES):
             with self.subTest(script=source):
                 fixture = self.fixture(f"cache-{index}")
@@ -275,11 +276,11 @@ if remove_worktree_dir_safely 'Selected child'; then exit 92; fi
                 marker.write_text("preserved cache\n", encoding="utf-8")
                 shutil.rmtree(child)
                 before = {name: (cache / name).read_bytes() for name in ("HEAD", "config", "must-preserve.marker")}
-                output = self.shell(source, fixture, "if ensure_submodule_worktree_present 'Selected child'; then exit 94; fi\n")
-                self.assertIn("缓存仍存在", output)
+                output = self.shell(source, fixture, "ensure_submodule_worktree_present 'Selected child'\n")
+                self.assertIn("复用已有 Git 缓存", output)
                 self.assertNotIn("首次克隆", output)
                 self.assertEqual(before, {name: (cache / name).read_bytes() for name in before})
-                self.assertFalse((child / ".git").exists())
+                self.assertTrue((child / ".git").is_file())
 
     def test_parent_pull_never_fetches_or_initializes_children_despite_global_recurse(self) -> None:
         for index, source in enumerate(SOURCES):

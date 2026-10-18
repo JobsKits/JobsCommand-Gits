@@ -198,52 +198,53 @@ repo_name_by_path() { print -r -- "$1"; }
                 subprocess.run(['/usr/bin/git', 'init', '-q', str(target)], env=self.env, check=True)
                 self.shell(source, f"cd {str(target / 'wrong-layer')!r}\nif ensure_repo_initialized; then print UNEXPECTED_SUCCESS; exit 92; fi\n[[ ! -e .git ]]\n")
 
-    def test_full_targets_exclude_unconfigured_repositories(self) -> None:
+    def test_full_sync_reuses_configured_paths_without_delete_or_global_confirmation(self) -> None:
         for source in SOURCES:
             with self.subTest(source=source):
-                self.shell(source, r'''CONFIG_PATHS=('🧪 configured')
-repo_name_by_path() { print -r -- LegacyRepo; }
-collect_existing_child_git_dirs() { print UNEXPECTED_UNCONFIGURED; }
-targets="$(collect_full_delete_targets)"
-[[ "$targets" == $'🧪 configured\nLegacyRepo' ]]
+                trace = self.root / 'trace'
+                trace.unlink(missing_ok=True)
+                self.shell(source, r'''CONFIG_PATHS=('Child with space' '第二个 child')
+repo_name_by_path() { print UNEXPECTED_LEGACY_LOOKUP; return 1; }
+reconcile_gitmodules_with_config_once() { print RECONCILE >> "$CASE_ROOT/trace"; }
+sync_selected_submodules_to_latest() { printf 'SYNC %s\n' "$@" >> "$CASE_ROOT/trace"; }
+stage_and_commit_parent_changes() { printf 'STAGE %s\n' "$@" >> "$CASE_ROOT/trace"; }
+parent_push_if_needed() { print PUSH_POLICY >> "$CASE_ROOT/trace"; }
+full_sync_to_latest
 ''')
-
-    def test_full_rebuild_requires_exact_yes_and_no_confirmation_for_dry_run(self) -> None:
-        stubs = r'''CONFIG_PATHS=(Child)
-repo_name_by_path() { print LegacyChild; }
-reconcile_gitmodules_with_config_once() { print MUTATION >> "$CASE_ROOT/trace"; }
-remove_worktree_dir_safely() { print -r -- "DELETE $1" >> "$CASE_ROOT/trace"; }
-sync_selected_submodules_to_latest() { return 0; }
-sync_submodule_urls_for_remote() { return 0; }
-stage_and_commit_parent_changes() { return 0; }
-parent_push_if_needed() { return 0; }
-'''
-        for source in SOURCES:
-            for answer in ('\n', 'yes\n', 'YES\n'):
-                with self.subTest(source=source, answer=answer):
-                    trace = self.root / 'trace'
-                    trace.unlink(missing_ok=True)
-                    self.shell(source, stubs + 'full_sync_to_latest\n', tty_input=answer)
-                    if answer == 'YES\n':
-                        self.assertEqual(['MUTATION', 'DELETE Child', 'DELETE LegacyChild'], trace.read_text().splitlines())
-                    else:
-                        self.assertFalse(trace.exists())
-            self.shell(source, r'''DRY_RUN=1
-confirm_full_rebuild
-''')
+                self.assertEqual([
+                    'RECONCILE', 'SYNC Child with space', 'SYNC 第二个 child',
+                    'STAGE Child with space', 'STAGE 第二个 child', 'PUSH_POLICY',
+                ], trace.read_text().splitlines())
+                content = source.read_text(encoding='utf-8')
+                for obsolete in ('collect_full_delete_targets()', 'confirm_full_rebuild()', 'remove_worktree_dir_safely()'):
+                    self.assertNotIn(obsolete, content)
 
     def test_full_failure_propagates_before_later_actions(self) -> None:
         for source in SOURCES:
             with self.subTest(source=source):
-                output = self.shell(source, r'''confirm_full_rebuild() { return 0; }
-reconcile_gitmodules_with_config_once() { print EXPECTED_FAILURE; return 37; }
-remove_worktree_dir_safely() { print UNEXPECTED_DELETE; }
+                output = self.shell(source, r'''reconcile_gitmodules_with_config_once() { print EXPECTED_FAILURE; return 37; }
 sync_selected_submodules_to_latest() { print UNEXPECTED_SYNC; }
 success_echo() { print UNEXPECTED_SUCCESS; }
 if full_sync_to_latest; then print UNEXPECTED_ZERO; exit 93; fi
 ''')
                 self.assertIn('EXPECTED_FAILURE', output)
                 self.assertNotIn('UNEXPECTED_', output)
+
+    def test_explicit_stale_prune_requires_its_own_terminal_yes(self) -> None:
+        for source in SOURCES:
+            with self.subTest(source=source):
+                self.assertIn('未执行删除', self.shell(
+                    source, "confirm_stale_submodule_removal 'Legacy child'\n", expected=1,
+                ))
+                for answer in ('\n', 'yes\n', 'YES \n'):
+                    self.assertIn('停止旧登记裁剪', self.shell(
+                        source, "confirm_stale_submodule_removal 'Legacy child'\n",
+                        tty_input=answer, expected=1,
+                    ))
+                self.shell(source, "confirm_stale_submodule_removal 'Legacy child'\n", tty_input='YES\n')
+                self.assertIn('仅展示旧登记裁剪', self.shell(
+                    source, "DRY_RUN=1\nconfirm_stale_submodule_removal 'Legacy child'\n",
+                ))
 
     def test_multiselect_back_returns_to_menu_with_err_exit(self) -> None:
         for source in SOURCES:
@@ -304,6 +305,29 @@ if sync_selected_submodules_to_latest "$selected"; then print UNEXPECTED_SUCCESS
                 self.assertIn("拒绝", output)
                 self.assertEqual(before, (target / ".git/config").read_bytes())
 
+    def test_nested_symlink_components_inside_parent_are_rejected_before_mutation(self) -> None:
+        for index, source in enumerate(SOURCES):
+            with self.subTest(source=source):
+                parent = self.root / f'component-links-{index}'
+                target = parent / 'existing/child'
+                target.mkdir(parents=True)
+                self.git(parent, 'init', '-q')
+                self.git(target, 'init', '-q')
+                self.git(target, 'commit', '--allow-empty', '-qm', 'fixture')
+                self.git(target, 'remote', 'add', 'origin', 'https://must-preserve.invalid/repo')
+                (parent / 'shortcut').symlink_to(parent / 'existing', target_is_directory=True)
+                (parent / 'deep').mkdir()
+                (parent / 'deep/link').symlink_to(target, target_is_directory=True)
+                before = {name: (target / '.git' / name).read_bytes() for name in ('HEAD', 'config')}
+                output = self.shell(source, f'cd {shlex.quote(str(parent))}\n' + r'''
+clone_url_for_path() { print UNEXPECTED_URL_LOOKUP; return 1; }
+for selected in 'shortcut/child' 'deep/link' '.git/child' 'deep/.git/child'; do
+  if sync_selected_submodules_to_latest "$selected"; then print UNEXPECTED_SUCCESS; exit 99; fi
+done
+''')
+                self.assertNotIn('UNEXPECTED_', output)
+                self.assertEqual(before, {name: (target / '.git' / name).read_bytes() for name in before})
+
     def test_initialized_entry_stops_before_completion_on_failure(self) -> None:
         for source in SOURCES:
             with self.subTest(source=source):
@@ -332,21 +356,20 @@ print UNEXPECTED_CONTINUED
                 self.assertNotIn('UNEXPECTED_', output)
                 self.assertFalse((self.root / 'output.log').exists())
 
-    def test_real_nested_parent_with_aliased_section_rebuilds_only_owned_cache_and_commits_only_association(self) -> None:
+    def test_real_nested_parent_reuses_worktree_and_owned_cache_and_commits_only_association(self) -> None:
         for i, source in enumerate(SOURCES):
             with self.subTest(source=source):
-                parent, cache, bypass, leaf = self.fixture(f'rebuild-{i}')
+                parent, cache, bypass, leaf = self.fixture(f'reuse-{i}')
                 self.assertTrue((parent / '.git').is_file())
                 self.assertTrue((parent / '目标 child/.git').is_file())
                 (cache / 'old-target.marker').write_text('old target cache')
                 (bypass / 'bypass.marker').write_text('must stay')
                 before = {p: hashlib.sha256((bypass / p).read_bytes()).hexdigest() for p in ('config', 'HEAD', 'bypass.marker')}
-                output = self.shell(source, self.script_body(parent) + r'''confirm_full_rebuild() { return 0; }
-full_sync_to_latest
+                output = self.shell(source, self.script_body(parent) + r'''full_sync_to_latest
 [[ -f '目标 child/.git' ]]
 expected_cache="$(git rev-parse --absolute-git-dir)/modules/real-section"
 [[ "$(git -C '目标 child' rev-parse --absolute-git-dir)" == "$expected_cache" ]]
-[[ ! -e "$expected_cache/old-target.marker" ]]
+[[ -f "$expected_cache/old-target.marker" ]]
 [[ "$(git config -f .gitmodules submodule.real-section.path)" == '目标 child' ]]
 # 关联提交只包含目标 gitlink，原有其它暂存仍留在索引中。
 print unrelated > unrelated-staged.txt
@@ -385,7 +408,7 @@ if git cat-file -e HEAD:unrelated-staged.txt 2>/dev/null; then exit 94; fi
                     (cache / 'worktrees').mkdir()
                     (cache / 'worktrees/other').mkdir()
                 output = self.shell(source, self.script_body(parent) + "if submodule_cache_for_removal '目标 child'; then print UNEXPECTED_ACCEPTED; exit 95; fi\n")
-                self.assertIn('拒绝删除', output)
+                self.assertIn('拒绝复用', output)
                 self.assertNotIn('UNEXPECTED_', output)
                 self.assertEqual(b'keep bypass', (bypass / 'keep.marker').read_bytes())
                 if mode != 'symlink':
