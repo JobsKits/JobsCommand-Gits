@@ -22,6 +22,8 @@ SOURCES += [
     GENESIS / "JobsCommand@Gits" / SCRIPT_NAME / SCRIPT_NAME,
 ]
 FUNCTIONS = (
+    "source_highlight_echo", "safe_git_source_url", "effective_git_source_url",
+    "git_source_platform", "print_git_source",
     "trim_string", "parse_git_remote_url", "resolve_relative_git_url", "normalize_gitee_https_url",
     "configure_gitee_https_transport", "git_url_with_style", "validate_submodule_url_path",
     "sync_submodule_urls_at_repo", "clone_submodule_worktree", "ensure_submodule_worktree_present",
@@ -32,6 +34,7 @@ setopt ERR_EXIT PIPE_FAIL NO_NOMATCH
 source "$1"
 shift
 CASE_ROOT="$1"
+LOG_FILE="$CASE_ROOT/output.log"
 GIT_URL_STYLE=auto
 SUBMODULE_BRANCH=main
 SUBMODULE_SHALLOW_CLONE=1

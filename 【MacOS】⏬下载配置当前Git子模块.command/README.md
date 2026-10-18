@@ -15,6 +15,25 @@
 - 普通安装 / 更新 / 升级交互统一为：**回车跳过，输入任意字符后回车执行**。
 - 危险操作不应该靠回车默认执行；涉及破坏性修改时，应单独输入 `YES` 确认。
 
+<strong id="git-source-log">运行时先看这里：子 Git 从哪里拉取</strong>
+
+以父仓线路为 `https://gitee.com/JobsGo/JobsGenesis.git`、下载 `JobsCommand@iOS` 为例，终端会突出显示完整来源；提交号仅展示成功日志的格式：
+
+```text
+━━━━━━━━━━ Git 来源｜首次克隆 ━━━━━━━━━━
+📦 仓库：JobsCommand@iOS
+🌐 平台 / 主机：Gitee（gitee.com）
+📥 拉取地址：https://gitee.com/JobsGo/JobsCommand-iOS.git
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ℹ️  克隆分支：main
+... Git 原生下载进度 ...
+✅ JobsCommand@iOS 已浅同步到 origin/main：17b467d（来源：https://gitee.com/JobsGo/JobsCommand-iOS.git）
+```
+
+父仓线路、首次克隆和拉取更新各有来源块；已能读取 `.gitmodules` 的递归子仓，在更新前显示“递归来源核对”。首次原生递归克隆仍由 Git 输出注册 URL。平台按地址中的主机识别，不按本地目录名判断。
+
+若 `insteadOf` 改写了 URL，来源块同时列出“解析地址”和“拉取地址”；后者由 `git ls-remote --get-url` 在本地展开，未探测 HTTP 重定向或代理最终出口。首次克隆只读取系统、全局及本次进程的规则，不沿用父仓本地 `insteadOf`；已有子仓拉取读取自身配置，递归子仓也分别按未初始化 / 已初始化采用这两种作用域。新来源块在支持颜色的终端重点显示，写入日志时保留纯文本；URL 凭据与查询参数会脱敏。来源日志位于系统临时目录 `/tmp` 中的 `【MacOS】⏬下载配置当前Git子模块.log`，Git 原生进度仍以终端输出为准。
+
 <strong id="submodule-quick-look">先看例子：同一份子模块配置，跟着父仓走不同平台</strong>
 
 以下用 `JobsGenesis` 父仓中已有的 `JobsCommand@Flutter` 子模块演示本通用工具的地址规则。
@@ -79,7 +98,7 @@ chmod +x './【MacOS】⏬下载配置当前Git子模块.command'
 
 - 统一脚本解释器为 `# shell: zsh`。
 - 增加 README 展示与回车阻塞，防止双击误操作。
-- 增加 Jobs 标准彩色日志函数，日志路径为 `$TMPDIR/脚本名.log`。
+- 增加 Jobs 标准彩色日志函数，脚本日志写入系统临时目录 `/tmp`，文件名为 `【MacOS】⏬下载配置当前Git子模块.log`。
 - 增加 `SCRIPT_DIR` / `SCRIPT_PATH` 标准路径变量。
 - 使用 `main "$@"` 作为统一入口。
 - 原业务逻辑保留在 `run_original_logic` 模块内，方便后续继续拆分重构。
@@ -98,7 +117,7 @@ chmod +x './【MacOS】⏬下载配置当前Git子模块.command'
 - 首次运行前建议先阅读本 README，再执行脚本。
 - 如果脚本涉及工程目录，请确认当前目录或拖入路径正确。
 - 如果脚本涉及 Git / CocoaPods / Flutter 依赖更新，建议先提交或备份本地改动。
-- 运行日志默认写入：`$TMPDIR/【MacOS】⏬下载配置当前Git子模块.log`。
+- 脚本日志写入系统临时目录 `/tmp` 中的 `【MacOS】⏬下载配置当前Git子模块.log`；新来源块为纯文本，Git 原生进度以终端输出为准。
 
 ## 六、流程图 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
@@ -141,9 +160,11 @@ AUTO_PARENT_COMMIT=0 \
 
 ```shell
 python3 \
-  ./tests/test_gitee_https_transport.py
+  -m unittest discover \
+  -s ./tests \
+  -p 'test_*.py'
 ```
 
-测试只允许 `file://` 协议，在临时目录创建带提交的父子仓并执行本地递归克隆，结合隔离 Git 配置和受控命令替身检查提取出的函数，覆盖 Gitee 地址边界、递归子进程继承、已有进程配置保留与失败返回；不启动交互菜单，不访问远端，不修改真实工程工作区或全局 Git 配置。测试通过仅表示离线回归通过，新电脑真实下载仍须使用更新后的入口验收。
+测试只允许 `file://` 协议，在临时目录创建带提交的父子仓并执行本地递归克隆，结合隔离 Git 配置和受控命令替身检查提取出的函数，覆盖 Gitee 地址边界、递归子进程继承、已有进程配置保留与失败返回，以及来源日志、URL 脱敏和克隆 / 拉取配置作用域；不启动交互菜单，不访问远端，不修改真实工程工作区或全局 Git 配置。测试通过仅表示离线回归通过，新电脑真实下载仍须使用更新后的入口验收。
 
 <a id="🔚" href="#前言" style="font-size:17px; color:green; font-weight:bold;">我是有底线的➤点我回到首页</a>
