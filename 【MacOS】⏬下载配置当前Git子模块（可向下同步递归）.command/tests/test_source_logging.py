@@ -13,18 +13,10 @@ import subprocess
 import tempfile
 import unittest
 
-from test_gitee_https_transport import SOURCES, GENESIS, SCRIPT_NAME
+from test_gitee_https_transport import SOURCES
 
 
-ALL_SOURCES = [*SOURCES, GENESIS.parent / "JobsBaseConfig" / SCRIPT_NAME]
-FUNCTIONS = (
-    "log", "info_echo", "success_echo", "warn_echo", "error_echo",
-    "source_highlight_echo", "safe_git_source_url", "effective_git_source_url",
-    "git_source_platform", "print_git_source", "trim_string", "parse_git_remote_url",
-    "resolve_relative_git_url", "git_url_with_style", "ensure_git_remote",
-    "validate_submodule_url_path", "sync_submodule_urls_at_repo",
-    "clone_submodule_worktree", "sync_one_submodule_to_latest",
-)
+ALL_SOURCES = SOURCES
 SETUP = r'''
 setopt ERR_EXIT PIPE_FAIL NO_NOMATCH
 source "$1"
@@ -68,7 +60,7 @@ class SourceLoggingTests(unittest.TestCase):
         self.tmp.cleanup()
 
     def shell(self, source: Path, body: str, *, terminal: bool = False) -> tuple[str, str]:
-        """Extract real functions; allow only disposable local Git repositories."""
+        """Load real declarations; allow only disposable local Git repositories."""
         self.case_count += 1
         case_root = self.root / f"case-{self.case_count}"
         parent = case_root / "parent"
@@ -79,19 +71,8 @@ class SourceLoggingTests(unittest.TestCase):
         )
         self.assertEqual(0, init.returncode, init.stderr)
         content = source.read_text(encoding="utf-8")
-        extracted = []
-        for name in (*FUNCTIONS, "normalize_gitee_https_url", "configure_gitee_https_transport"):
-            patterns = (
-                rf"(?m)^[ \t]*{re.escape(name)}\(\)[ \t]*\{{[^\n]*\}}[ \t]*$",
-                rf"(?ms)^([ \t]*){re.escape(name)}\(\)[ \t]*\{{[ \t]*\n.*?^\1\}}[ \t]*$",
-            )
-            matches = [match for pattern in patterns for match in re.finditer(pattern, content)]
-            if name in FUNCTIONS:
-                self.assertTrue(matches, f"{source}: missing {name}")
-            if matches:
-                extracted.append(max(matches, key=lambda match: match.start()).group())
         candidate = case_root / "functions.zsh"
-        candidate.write_text("\n".join(extracted) + "\n", encoding="utf-8")
+        candidate.write_text(re.sub(r'(?m)^main "\$@"\s*$', '', content), encoding="utf-8")
         args = ["/bin/zsh", "-f", "-c", SETUP + body, "offline-source-test", str(candidate), str(case_root)]
         if terminal:
             master, slave = pty.openpty()
@@ -183,7 +164,8 @@ clone_submodule_worktree Child || true
 ''')
                 self.assertLess(disk.index("首次克隆"), disk.index("NETWORK_PROBE"))
                 self.assertLess(disk.index("拉取地址：https://gitee.com/team/Child.git"), disk.index("NETWORK_PROBE"))
-                self.assertLess(disk.index("克隆分支：main"), disk.index("COMMAND git clone"))
+                clone_line = next(line for line in disk.splitlines() if line.startswith("COMMAND git ") and " clone " in line)
+                self.assertLess(disk.index("克隆分支：main"), disk.index(clone_line))
 
     def test_fetch_source_uses_child_scope_before_branch_probe(self) -> None:
         for source in ALL_SOURCES:

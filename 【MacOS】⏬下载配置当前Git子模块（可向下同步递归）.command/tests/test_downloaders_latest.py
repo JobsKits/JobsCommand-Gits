@@ -14,7 +14,7 @@ import subprocess
 import tempfile
 import unittest
 
-SCRIPT_NAME = "【MacOS】⏬下载配置当前Git子模块.command"
+SCRIPT_NAME = "【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command"
 GENESIS = Path(__file__).resolve().parents[3]
 CANDIDATES = [Path(__file__).resolve().parents[1] / SCRIPT_NAME]
 CANDIDATES += [GENESIS / folder / SCRIPT_NAME for folder in (
@@ -265,6 +265,44 @@ main_menu_loop "$CASE_ROOT/preview"
             for action, func in [('全量同步更新下载到最新', 'full_sync_to_latest'), ('只更新目前已有的', 'update_existing_to_latest'), ('添加并同步一个新的 Git 地址', 'add_new_git_url_interactive')]:
                 with self.subTest(source=source, action=action):
                     self.shell(source, f'build_intro_content() {{ print preview; }}\nselect_menu_action() {{ print -r -- {action!r}; }}\n{func}() {{ return 37; }}\nif main_menu_loop "$CASE_ROOT/preview"; then print UNEXPECTED_ZERO; exit 94; fi\n')
+
+    def test_recursion_menu_choice_changes_mode_and_cancel_preserves_previous_mode(self) -> None:
+        for source in SOURCES:
+            with self.subTest(source=source):
+                self.shell(source, r'''
+[[ "$SUBMODULE_RECURSIVE" == 1 && "$(submodule_recursion_label)" == *向下递归* ]]
+fzf() { cat >/dev/null; print -r -- '仅直属一层（不拉取下层）'; }
+select_submodule_recursion_interactive
+[[ "$SUBMODULE_RECURSIVE" == 0 && "$(submodule_recursion_label)" == *仅直属一层* ]]
+fzf() { cat >/dev/null; return 130; }
+select_submodule_recursion_interactive
+[[ "$SUBMODULE_RECURSIVE" == 0 ]]
+fzf() { cat >/dev/null; print -r -- '向下递归（所选子树逐层最新）'; }
+select_submodule_recursion_interactive
+[[ "$SUBMODULE_RECURSIVE" == 1 ]]
+fzf() { cat >/dev/null; return 130; }
+select_submodule_recursion_interactive
+[[ "$SUBMODULE_RECURSIVE" == 1 ]]
+''')
+
+    def test_symlink_selection_is_rejected_before_remote_or_worktree_mutation(self) -> None:
+        for index, source in enumerate(SOURCES):
+            with self.subTest(source=source):
+                target = self.root / f"outside-{index}"
+                target.mkdir()
+                self.git(target, "init", "-q")
+                self.git(target, "commit", "--allow-empty", "-qm", "fixture")
+                self.git(target, "remote", "add", "origin", "https://must-preserve.invalid/repo")
+                pointer = self.root / f"symlink-{index}"
+                pointer.symlink_to(target, target_is_directory=True)
+                before = (target / ".git/config").read_bytes()
+                output = self.shell(source, f"selected={shlex.quote(pointer.name)}\n" + r'''
+clone_url_for_path() { print UNEXPECTED_URL_LOOKUP; return 1; }
+if sync_selected_submodules_to_latest "$selected"; then print UNEXPECTED_SUCCESS; exit 98; fi
+''')
+                self.assertNotIn("UNEXPECTED_", output)
+                self.assertIn("拒绝", output)
+                self.assertEqual(before, (target / ".git/config").read_bytes())
 
     def test_initialized_entry_stops_before_completion_on_failure(self) -> None:
         for source in SOURCES:

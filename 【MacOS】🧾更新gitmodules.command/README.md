@@ -2,11 +2,27 @@
 
 ![Jobs出品，必属精品](https://picsum.photos/1500/400)
 
-[toc]
+<!-- jobs-toc:start -->
+<!-- jobs-toc:source {"v":2,"token":"[toc]"} -->
+<details>
+<summary>📚 目录（点击展开 / 收起）</summary>
+
+- [🔥 前言](#jobs-toc-heading-1)
+- [一、快速流程](#quick-flow)
+- [二、适用场景](#jobs-toc-heading-3)
+- [三、运行方式](#jobs-toc-heading-4)
+- [四、关联与保留规则](#jobs-toc-heading-5)
+- [五、执行前检查](#jobs-toc-heading-6)
+- [六、日志、备份与失败处理](#jobs-toc-heading-7)
+- [七、运行后检查](#jobs-toc-heading-8)
+- [八、常见问题](#jobs-toc-heading-9)
+
+</details>
+<!-- jobs-toc:end -->
 
 ---
 
-## 🔥 <font id=前言>前言</font>
+## <span id="jobs-toc-heading-1" data-jobs-toc="v2">🔥 <font id=前言>前言</font></span><!-- jobs-toc:heading-end -->
 
 这个脚本把父仓第一层新增的独立 [**Git**](https://git-scm.com/) 仓库登记为子模块，一次运行完成 `.gitmodules`、父仓 gitlink、本地子模块配置与 Git 元数据归集。关联结果留在本地供检查，不创建提交或推送，也不访问远端。
 
@@ -58,7 +74,7 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 
 本脚本负责**增补关联**：新增条目只有在父子全部已配置线路逐一同站、同命名空间且子仓名一致时，才登记相对 URL；条件不满足则保留明确原地址。已有 section、URL、branch 和扩展字段保持原样，不会把旧的固定 GitHub URL 批量改成相对地址，也不会把共享相对 URL 写回子仓真实 `origin`。登记过程不联网、不提交、不推送；具体保留范围见后文。
 
-## 二、适用场景 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-3" data-jobs-toc="v2">二、适用场景 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 已把一个独立 Git 仓库放到父仓第一层，希望父仓通过子模块管理它。
 - 已有 `.gitmodules` 登记，但父仓尚未建立对应 gitlink，需要补齐关联。
@@ -67,7 +83,7 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 
 扫描只覆盖目标父仓的第一层真实子 Git 目录，不递归接管孙仓，不把普通目录初始化为仓库。
 
-## 三、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-4" data-jobs-toc="v2">三、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 双击同目录的 `【MacOS】🧾更新gitmodules.command`，或从终端运行：
 
@@ -97,7 +113,7 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 
 普通执行必须在可交互终端中运行；自动检查使用 `--dry-run`。脚本不提供 `--repo` 参数，需要处理哪个父仓，就运行放在该父仓中的脚本副本。
 
-## 四、关联与保留规则 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-5" data-jobs-toc="v2">四、关联与保留规则 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 | 对象 | 处理规则 |
 | --- | --- |
@@ -118,7 +134,7 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 
 `JobsBaseConfig` 根目录保留的旧入口只负责增量写入 `.gitmodules`，不暂存 gitlink、不初始化或归集元数据；同样保留已有 section、URL、branch、扩展字段及暂缺工作目录的登记，并采用上述新增 URL 规则。其只读入口为 `DRY_RUN=1`，不支持这里的 `--dry-run` 参数。
 
-## 五、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-6" data-jobs-toc="v2">五、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 确认脚本位于目标父仓根目录，或其下一层的同名脚本目录中；运行环境需要可用的 `/bin/zsh` 和 `git`。
 - 新增子仓必须已有提交和可读取的 `origin` URL。尚未提交的空仓或缺少远端的子仓会阻断执行，应先在子仓中完成配置。
@@ -129,7 +145,7 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 
 缺失目录的旧登记不会自动删除。需要移除子模块时，应单独确认目录、配置与索引的清理范围。
 
-## 六、日志、备份与失败处理 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-7" data-jobs-toc="v2">六、日志、备份与失败处理 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 日志位于系统临时目录中的 `【MacOS】🧾更新gitmodules.<PID>.log`，按进程区分，实际路径会在运行时显示。
 - 执行前备份位于父仓实际 Git 目录内，实际备份路径会写入日志。
@@ -137,7 +153,7 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 - 执行中失败会报告失败阶段和备份位置。已完成的本地步骤可能保留，脚本不会自动回滚源码；按日志核对当前状态和备份后再处理。
 - 预检模式不改父子仓关联配置、索引或 Git 元数据；`--help` 只显示说明。
 
-## 七、运行后检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-8" data-jobs-toc="v2">七、运行后检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 在目标父仓中检查：
 
@@ -163,7 +179,7 @@ python3 './tests/test_association.py'
 python3 './tests/test_url_writers.py'
 ```
 
-## 八、常见问题 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-9" data-jobs-toc="v2">八、常见问题 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - **为什么新增子仓没有被关联？** 先看日志确认它在父仓第一层、有独立 `.git`、已有提交且配置了 `origin`，再检查是否存在阻断条件。直接回车会跳过写入，执行时需要在计划确认处输入任意非空字符。
 - **为什么重新运行没有更新子仓版本？** 已有 gitlink 刻意保留，版本推进属于另一个待审查的变更；此脚本只补齐新增或缺失的关联。

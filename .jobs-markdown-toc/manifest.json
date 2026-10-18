@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "files": [
+    ".jobs-markdown-toc/README.md",
+    "README.md",
+    "【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command/README.md",
+    "【MacOS】⏬双击下载SourceTree效率脚本.command/README.md",
+    "【MacOS】♻️双击Git 提交回退.command/README.md",
+    "【MacOS】♻️双击恢复误删本地Git已储藏的资料.command/README.md",
+    "【MacOS】♻️批量Git提交（不含推送）.command/README.md",
+    "【MacOS】♻️检测并转换为子Git.command/README.md",
+    "【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command/README.md",
+    "【MacOS】⚙️双击生成Github远程仓库URL.command/README.md",
+    "【MacOS】⬆️Git添加子模块.command/README.md",
+    "【MacOS】🎬上传GitHub视频附件.command/README.md",
+    "【MacOS】🔍Git依据提交日志关键字查找.command/README.md",
+    "【MacOS】🔍Git寻找分支最近的一次原始切点.command/README.md",
+    "【MacOS】🚪双击打开Github.Flutter.command/README.md",
+    "【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command/README.md",
+    "【MacOS】🚪双击打开Github.JobsOCKit.command/README.md",
+    "【MacOS】🧭更新引用Git父仓=>子仓.command/README.md",
+    "【MacOS】🧮双击统计MD文件的有效行数.command/README.md",
+    "【MacOS】🧹清理Git子仓运行态记录.command/README.md",
+    "【MacOS】🧾更新gitmodules.command/README.md"
+  ]
+}

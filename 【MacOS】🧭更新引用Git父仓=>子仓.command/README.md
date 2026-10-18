@@ -2,11 +2,28 @@
 
 ![Jobs出品，必属精品](https://picsum.photos/1500/400)
 
-[toc]
+<!-- jobs-toc:start -->
+<!-- jobs-toc:source {"v":2,"token":"[toc]"} -->
+<details>
+<summary>📚 目录（点击展开 / 收起）</summary>
+
+- [🔥 前言](#jobs-toc-heading-1)
+- [一、快速流程](#quick-flow)
+- [二、适用场景](#jobs-toc-heading-3)
+- [三、会修改什么](#jobs-toc-heading-4)
+- [四、运行方式](#jobs-toc-heading-5)
+- [五、执行前检查](#jobs-toc-heading-6)
+- [六、流程图](#jobs-toc-heading-7)
+- [七、日志文件](#jobs-toc-heading-8)
+- [八、风险说明](#jobs-toc-heading-9)
+- [九、常见问题](#jobs-toc-heading-10)
+
+</details>
+<!-- jobs-toc:end -->
 
 ---
 
-## 🔥 <font id=前言>前言</font>
+## <span id="jobs-toc-heading-1" data-jobs-toc="v2">🔥 <font id=前言>前言</font></span><!-- jobs-toc:heading-end -->
 
 - 这个脚本用于修复父 [**GitHub**](https://github.com) / Git 仓库管理多个子 Git 时，目录改名后引发的子模块元数据错位问题。
 - 脚本以当前磁盘上真实存在的第一层子 Git 目录为基准，对齐 `.gitmodules`、父仓库 gitlink、本地 `.git/config` 和子目录 `.git` 指针。
@@ -65,14 +82,14 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 
 本脚本负责**修复目录与 Git 元数据的对应关系**：已有条目保留 section、URL、branch 和扩展字段；磁盘上已不存在的旧 path 按工具职责移除。新增登记满足全部已配置线路的同站、同命名空间、子仓同名条件时才写相对 URL，否则保留明确原地址。子仓真实 `origin` 仍单独保存，不能把共享的 `../JobsCommand-Flutter.git` 当成它的远端地址。修复不提交、不推送，也不会批量迁移存量固定平台 URL。
 
-## 二、适用场景 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-3" data-jobs-toc="v2">二、适用场景 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 当前磁盘目录名已经是你想要的最终形态，但普通 `git status` 输出和真实目录不一致。
 - `.gitmodules` 里残留旧目录名、旧子模块名、重复配置或不存在的路径。
 - 子目录 `.git` 文件仍指向旧的 `.git/modules/旧目录名`，导致父仓库执行 `git status`、提交或 SourceTree 刷新时报错。
 - 父仓库索引里还残留磁盘上已经不存在的旧 gitlink。
 
-## 三、会修改什么 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-4" data-jobs-toc="v2">三、会修改什么 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 会按当前真实子 Git 目录对齐父仓库 `.gitmodules` 的路径清单；按 path 找到仍存在的 section 后，保留其名称、URL、branch 和扩展字段，包括原本未设置 branch 的状态。磁盘上已经不存在的旧 path 继续按本工具的目录对齐职责移除。
 - 新增登记只在父子全部已配置托管线路逐一同站同命名空间、子仓同名时使用 `../仓库名.git`，从父仓默认远端继承站点和传输方式。适用于 GitHub、[**Gitee**](https://gitee.com) 和其它已配置平台；支持 HTTPS、scp 风格 SSH、带端口的 `ssh://` 与多层命名空间。
@@ -83,7 +100,7 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 - 会重新登记父仓本地子模块配置并执行 `git submodule init`；保留子仓真实 `origin`，不把共享登记地址覆盖到子仓远端。
 - 不会删除当前磁盘上的子 Git 目录。旧 gitlink 使用的是 `git rm --cached`，只移出父仓库索引。
 
-## 四、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-5" data-jobs-toc="v2">四、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 双击运行：
 
@@ -101,13 +118,13 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 - 脚本会先展示内置自述，按回车后进入检查流程。
 - 真正执行修复前还会二次询问：直接回车跳过；输入任意字符后回车执行。
 
-## 五、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-6" data-jobs-toc="v2">五、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 确认当前磁盘上的第一层子 Git 目录名就是最终想保留的目录名。
 - 确认每个子 Git 目录都能找到 `remote.origin.url`。如果某个子目录完全没有远端地址，脚本会停止，避免写坏 `.gitmodules`。
 - 如果父仓库里有其它未提交改动，脚本不会回滚；修复完成后需要你自己决定是否一起提交。
 
-## 六、流程图 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-7" data-jobs-toc="v2">六、流程图 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 ```mermaid
 flowchart TD
@@ -128,13 +145,13 @@ flowchart TD
 
 `--dry-run` 只执行预检与计划预览；元数据归属不明、指针破损或链接工作树会在写入前停止。
 
-## 七、日志文件 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-8" data-jobs-toc="v2">七、日志文件 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 日志位于系统临时目录，文件名为 `【MacOS】🧭更新引用Git父仓=>子仓.<进程号>.log`；启动时打印完整路径。
 - 确认后将关联配置与索引备份到父仓实际 Git 目录的 `jobs-submodule-backups/reference.*`，终端和日志显示具体位置。
 - 修复中断时查看失败阶段和备份位置，核对当前状态后再决定恢复；脚本不会把部分完成报成成功。
 
-## 八、风险说明 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-9" data-jobs-toc="v2">八、风险说明 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 这个脚本会改 Git 元数据，不是纯查看脚本。
 - 脚本判断标准是“当前磁盘目录优先”。如果你当前目录名本身还没整理好，请先改目录，再运行脚本。
@@ -145,7 +162,7 @@ flowchart TD
   python3 './tests/test_reference_repair.py'
   ```
 
-## 九、常见问题 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-10" data-jobs-toc="v2">九、常见问题 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 如果提示无法读取某个子 Git 的 `origin URL`，进入对应子目录补齐远端：
 

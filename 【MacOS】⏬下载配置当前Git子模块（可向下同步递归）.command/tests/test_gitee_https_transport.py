@@ -13,22 +13,15 @@ import unittest
 
 
 GENESIS = Path(__file__).resolve().parents[3]
-SCRIPT_NAME = "【MacOS】⏬下载配置当前Git子模块.command"
+SCRIPT_NAME = "【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command"
 SOURCES = [GENESIS / directory / SCRIPT_NAME for directory in (
     "", "JobsConfigOS", "JobsPythonTools.py", "MacOS@Extension", "JobsConfigOS/💻JobsCodexConfigs",
 )]
+SOURCES += [GENESIS.parent / "JobsBaseConfig" / SCRIPT_NAME]
 SOURCES += [
     GENESIS / "JobsConfigOS/⚙️VScodeConfigs" / SCRIPT_NAME / SCRIPT_NAME,
     GENESIS / "JobsCommand@Gits" / SCRIPT_NAME / SCRIPT_NAME,
 ]
-FUNCTIONS = (
-    "source_highlight_echo", "safe_git_source_url", "effective_git_source_url",
-    "git_source_platform", "print_git_source",
-    "trim_string", "parse_git_remote_url", "resolve_relative_git_url", "normalize_gitee_https_url",
-    "configure_gitee_https_transport", "git_url_with_style", "validate_submodule_url_path",
-    "sync_submodule_urls_at_repo", "clone_submodule_worktree", "ensure_submodule_worktree_present",
-    "sync_one_submodule_to_latest", "sync_selected_submodules_to_latest",
-)
 SHELL_SETUP = r'''
 setopt ERR_EXIT PIPE_FAIL NO_NOMATCH
 source "$1"
@@ -40,6 +33,8 @@ SUBMODULE_BRANCH=main
 SUBMODULE_SHALLOW_CLONE=1
 SUBMODULE_DEPTH=1
 SUBMODULE_FETCH_TAGS=0
+SUBMODULE_RECURSIVE=1
+submodule_cache_for_removal() { return 0; }
 info_echo() { return 0; }
 warn_echo() { print -r -- "$*"; }
 error_echo() { print -r -- "$*"; }
@@ -111,20 +106,15 @@ class GiteeHttpsTransportTests(unittest.TestCase):
         return parent
 
     def shell(self, source: Path, body: str, *, fixture: bool = False, second: bool = False) -> str:
-        """Source only selected real functions, including indented functions in the generic copy."""
+        """Load real declarations after removing the business entrypoint."""
         self.case_count += 1
         case_root = self.root / f"case-{self.case_count}"
         case_root.mkdir()
         if fixture:
             self.fixture(case_root, second=second)
         content = source.read_text(encoding="utf-8")
-        extracted = []
-        for name in FUNCTIONS:
-            match = re.search(rf"(?ms)^([ \t]*){re.escape(name)}\(\)[ \t]*\{{.*?^\1\}}", content)
-            self.assertIsNotNone(match, f"{source}: missing function {name}")
-            extracted.append(match.group())
         candidate = case_root / "functions.zsh"
-        candidate.write_text("\n".join(extracted) + "\n", encoding="utf-8")
+        candidate.write_text(re.sub(r'(?m)^main "\$@"\s*$', '', content), encoding="utf-8")
         result = subprocess.run(
             ["/bin/zsh", "-f", "-c", SHELL_SETUP + body, "offline-gitee-test", str(candidate), str(case_root)],
             cwd=case_root, env=self.env, capture_output=True, text=True, timeout=20,
@@ -219,7 +209,8 @@ if git -C "$parent" config -f .gitmodules 'submodule.no branch.branch'; then exi
         for source in SOURCES:
             with self.subTest(script=source):
                 output = self.shell(source, SYNC_FAILURE_SETUP + r'''
-run_cmd() { [[ "$*" == *'submodule update --init --recursive'* ]] && return 37; return 0; }
+sync_descendant_submodules_to_latest() { return 37; }
+run_cmd() { return 0; }
 if sync_one_submodule_to_latest "$CASE_ROOT"; then print UNEXPECTED_ZERO; exit 93; fi
 ''')
                 self.assertNotIn("UNEXPECTED_", output)
@@ -248,7 +239,7 @@ remote_branch_for_url() { print main; }
 remote_branch_exists() { [[ "$BRANCH_EXISTS" == 1 ]]; }
 get_ncpu() { print 1; }
 run_cmd() {
-  if [[ "$1 $2" == 'git clone' ]]; then print EXPECTED_CLONE_FAILURE; return 37; fi
+  if [[ "$*" == *' clone '* ]]; then print EXPECTED_CLONE_FAILURE; return 37; fi
   print UNEXPECTED_AFTER_CLONE
   return 0
 }

@@ -2,9 +2,23 @@
 
 ![Jobs出品，必属精品](https://picsum.photos/1500/400)
 
-[toc]
+<!-- jobs-toc:start -->
+<!-- jobs-toc:source {"v":2,"token":"[toc]"} -->
+<details>
+<summary>📚 目录（点击展开 / 收起）</summary>
 
-## 🔥 <font id=前言>前言</font>
+- [🔥 前言](#jobs-toc-heading-1)
+- [一、脚本用途](#jobs-toc-heading-2)
+- [二、运行方式](#jobs-toc-heading-3)
+- [三、本次升级内容](#jobs-toc-heading-4)
+- [四、Homebrew 标准](#jobs-toc-heading-5)
+- [五、注意事项](#jobs-toc-heading-6)
+- [六、流程图](#jobs-toc-heading-7)
+
+</details>
+<!-- jobs-toc:end -->
+
+## <span id="jobs-toc-heading-1" data-jobs-toc="v2">🔥 <font id=前言>前言</font></span><!-- jobs-toc:heading-end -->
 
 - 采用 Shell 脚本的原因：Shell 来自 [**macOS**](https://www.apple.com/macos/) 原生系统底层，虽然写法相对繁琐冗杂，但执行效率高，并且不需要额外介入 [**Ruby**](https://www.ruby-lang.org)、[**Python**](https://www.python.org) 等第三方运行环境，因此具备更好的移植性。
 
@@ -36,7 +50,7 @@
 
 **此入口仍包含全量重建、提交和推送流程。** 已有父子仓的日常增量关联使用 [更新 gitmodules](../【MacOS】🧾更新gitmodules.command/README.md)。总仓当前使用的 `JobsCommand@Flutter` 目录与上述旧入口的目录名不同，完整对照见 [JobsGenesis README](../../README.md#submodule-quick-look)。
 
-## 一、脚本用途 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-2" data-jobs-toc="v2">一、脚本用途 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 | 项目 | 说明 |
 |---|---|
@@ -48,7 +62,7 @@
 | 是否含高风险命令 | `是` |
 | zsh 静态检查 | `当前生成环境未执行，请在 macOS 上复核` |
 
-## 二、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-3" data-jobs-toc="v2">二、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 推荐双击 `.command` 运行。终端方式如下：
 
@@ -59,7 +73,7 @@ chmod +x './【MacOS】⬆️Git添加子模块.command'
 
 脚本启动后会先显示本 README，并等待回车继续，避免误触执行。
 
-## 三、本次升级内容 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-4" data-jobs-toc="v2">三、本次升级内容 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 统一脚本解释器为 `# shell: zsh`。
 - 增加 README 展示与回车阻塞，防止双击误操作。
@@ -68,13 +82,13 @@ chmod +x './【MacOS】⬆️Git添加子模块.command'
 - 使用 `main "$@"` 作为统一入口。
 - 原业务逻辑保留在 `run_original_logic` 模块内，方便后续继续拆分重构。
 
-## 四、Homebrew 标准 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-5" data-jobs-toc="v2">四、Homebrew 标准 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 已有 Homebrew 时保留原有维护交互，不因目录只读而自动另装。
 - [**Homebrew**](https://brew.sh/) 安装路径由用户选择：已有可运行安装时复用；确实需要安装时先强提示，只有精确输入大写 `YES` 才选择系统标准目录，其它输入或直接回车选择当前用户的 `.local/homebrew`。`YES` 只表示选择路径，权限与密码由官方安装器实际处理；有管理员权限也可以选用户目录。选定路径失败立即停止，不自动切换；`Ctrl+C` / 输入结束取消整个任务。
 - 用户目录安装需要可用 Git 与 curl；后续系统级软件仍可能要求管理员权限。
 
-## 五、注意事项 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-6" data-jobs-toc="v2">五、注意事项 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 内置新增清单使用 `../仓库名.git`，跟随父仓默认远端的平台、账号和协议，支持 [**Git**](https://git-scm.com/) 可用的托管服务。目标平台须已存在相同仓名与所需提交；脚本不会自动创建镜像。默认添加分支为 `main`，可用环境变量 `SUBMODULE_BRANCH` 指定实际分支。
 - 这个旧入口包含清理全部既有子模块、提交和推送流程。已有父子仓的日常增量关联使用同级 `../【MacOS】🧾更新gitmodules.command/` 中的入口；不要用重建流程切换平台。
@@ -84,7 +98,7 @@ chmod +x './【MacOS】⬆️Git添加子模块.command'
 - 如果脚本涉及 Git / CocoaPods / Flutter 依赖更新，建议先提交或备份本地改动。
 - 运行日志默认写入：`$TMPDIR/【MacOS】⬆️Git添加子模块.log`。
 
-## 六、流程图 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## <span id="jobs-toc-heading-7" data-jobs-toc="v2">六、流程图 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 ```mermaid
 graph TD
