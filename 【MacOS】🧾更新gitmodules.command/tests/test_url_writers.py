@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -87,29 +88,84 @@ class UrlWriterTests(unittest.TestCase):
                 self.git(child, "remote", "remove", "mirror")
                 self.shell(source, 'if relative_submodule_url "$1" "$2" "https://code.example/team/Child.git"; then exit 9; fi', parent, child)
 
-    def test_legacy_updater_retains_existing_fields_and_missing_directories(self) -> None:
-        parent = self.repo(self.root / "Parent", "Parent")
-        self.repo(parent / "Existing", "Existing")
-        self.repo(parent / "New", "New")
-        for key, value in {"path": "Existing", "url": "../preserved.git", "update": "none", "ignore": "dirty"}.items():
-            self.git(parent, "config", "-f", ".gitmodules", f"submodule.custom section.{key}", value)
-        self.git(parent, "config", "-f", ".gitmodules", "submodule.stale.path", "Missing")
-        self.git(parent, "config", "-f", ".gitmodules", "submodule.stale.url", "../Missing.git")
-        original = (parent / ".gitmodules").read_bytes()
-        target = self.root / "planned.gitmodules"
-        self.shell(UPDATERS[-1], '''
-REPO_ROOT="$1"; GITMODULES_FILE="$1/.gitmodules"; LOG_FILE="$3"
-load_existing_gitmodules
-discover_current_subgit_dirs
-collect_submodule_metadata
-build_gitmodules_file "$2"
+    def test_all_updaters_retain_existing_fields_and_missing_directories(self) -> None:
+        for index, source in enumerate(UPDATERS):
+            with self.subTest(script=source):
+                parent = self.repo(self.root / str(index) / "Parent", "Parent")
+                self.repo(parent / "Existing", "Existing")
+                self.repo(parent / "New", "New")
+                for key, value in {"path": "Existing", "url": "../preserved.git", "update": "none", "ignore": "dirty"}.items():
+                    self.git(parent, "config", "-f", ".gitmodules", f"submodule.custom section.{key}", value)
+                self.git(parent, "config", "-f", ".gitmodules", "submodule.stale.path", "Missing")
+                self.git(parent, "config", "-f", ".gitmodules", "submodule.stale.url", "../Missing.git")
+                original = (parent / ".gitmodules").read_bytes()
+                target = self.root / f"planned-{index}.gitmodules"
+                self.shell(source, '''
+SCRIPT_DIR="$1"; LOG_FILE="$3"
+initialize_runtime
+check_environment
+load_existing_modules
+discover_and_plan
+cp "$PLAN_FILE" "$2"
 ''', parent, target, self.root / "writer.log")
-        self.assertEqual(original, (parent / ".gitmodules").read_bytes())
-        self.assertEqual("../preserved.git", self.git(parent, "config", "-f", str(target), "submodule.custom section.url"))
-        self.assertEqual("", self.git(parent, "config", "-f", str(target), "submodule.custom section.branch", check=False))
-        self.assertEqual("none", self.git(parent, "config", "-f", str(target), "submodule.custom section.update"))
-        self.assertEqual("Missing", self.git(parent, "config", "-f", str(target), "submodule.stale.path"))
-        self.assertEqual("../New.git", self.git(parent, "config", "-f", str(target), "submodule.New.url"))
+                self.assertEqual(original, (parent / ".gitmodules").read_bytes())
+                self.assertEqual("../preserved.git", self.git(parent, "config", "-f", str(target), "submodule.custom section.url"))
+                self.assertEqual("", self.git(parent, "config", "-f", str(target), "submodule.custom section.branch", check=False))
+                self.assertEqual("none", self.git(parent, "config", "-f", str(target), "submodule.custom section.update"))
+                self.assertEqual("dirty", self.git(parent, "config", "-f", str(target), "submodule.custom section.ignore"))
+                self.assertEqual("Missing", self.git(parent, "config", "-f", str(target), "submodule.stale.path"))
+                self.assertEqual("../Missing.git", self.git(parent, "config", "-f", str(target), "submodule.stale.url"))
+                self.assertEqual("../New.git", self.git(parent, "config", "-f", str(target), "submodule.New.url"))
+
+    def test_all_updaters_are_identical_and_run_as_standalone_copies(self) -> None:
+        expected = UPDATERS[0].read_bytes()
+        for index, source in enumerate(UPDATERS):
+            with self.subTest(script=source):
+                self.assertFalse(source.is_symlink())
+                self.assertEqual(expected, source.read_bytes())
+                parent = self.repo(self.root / str(index) / "Parent", "Parent")
+                child = self.repo(parent / "Child", "Child")
+                candidate = parent / UPDATER
+                shutil.copyfile(source, candidate)
+                before = {name: (parent / ".git" / name).read_bytes() for name in ["config", "index"]}
+                process = subprocess.run(
+                    ["/bin/zsh", str(candidate), "--dry-run"], cwd=self.root,
+                    env=self.env, capture_output=True, text=True, timeout=25,
+                )
+                self.assertEqual(0, process.returncode, process.stdout + process.stderr)
+                self.assertIn("DRY_RUN=1", process.stdout)
+                self.assertEqual(before, {name: (parent / ".git" / name).read_bytes() for name in before})
+                self.assertFalse((parent / ".gitmodules").exists())
+                self.assertTrue((child / ".git").is_dir())
+
+    def test_all_updaters_back_up_original_config_index_and_gitmodules(self) -> None:
+        for index, source in enumerate(UPDATERS):
+            with self.subTest(script=source):
+                parent = self.repo(self.root / str(index) / "Parent", "Parent")
+                child = self.repo(parent / "Child", "Child")
+                self.git(parent, "config", "-f", ".gitmodules", "submodule.stale.path", "Missing")
+                self.git(parent, "config", "-f", ".gitmodules", "submodule.stale.url", "../Missing.git")
+                self.git(parent, "add", ".gitmodules")
+                before = {name: (parent / ".git" / name).read_bytes() for name in ["config", "index"]}
+                before["gitmodules"] = (parent / ".gitmodules").read_bytes()
+                parent_head = self.git(parent, "rev-parse", "HEAD")
+                child_head = self.git(child, "rev-parse", "HEAD")
+                self.shell(source, '''
+SCRIPT_DIR="$1"; LOG_FILE="$2"
+initialize_runtime
+check_environment
+load_existing_modules
+discover_and_plan
+backup_association_state
+apply_associations
+verify_associations
+''', parent, self.root / "backup.log")
+                backups = list((parent / ".git" / "jobs-submodule-backups").iterdir())
+                self.assertEqual(1, len(backups))
+                self.assertEqual(before, {name: (backups[0] / name).read_bytes() for name in before})
+                self.assertEqual(parent_head, self.git(parent, "rev-parse", "HEAD"))
+                self.assertEqual(child_head, self.git(child, "rev-parse", "HEAD"))
+                self.assertTrue((child / ".git").is_file())
 
     def test_alignment_preserves_registration_and_separates_child_origin(self) -> None:
         for index, source in enumerate(ALIGNERS):

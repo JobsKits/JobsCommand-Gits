@@ -13,7 +13,7 @@
 - 脚本定位：按父仓选定远端下载、登记和同步 Git 子模块。
 - 本次已按 Jobs 标准升级：`# shell: zsh`、README 防误触、彩色日志、结构化入口、`main "$@"` 收口。
 - 普通安装 / 更新 / 升级交互统一为：**回车跳过，输入任意字符后回车执行**。
-- 危险操作不应该靠回车默认执行；涉及破坏性修改时，应单独输入 `YES` 确认。
+- 全量删除重建须输入 `YES` 确认；分支对齐仍可能覆盖本地独有提交，运行前核对目标与本地提交。
 
 <strong id="git-source-log">运行时先看这里：子 Git 从哪里拉取</strong>
 
@@ -32,7 +32,30 @@
 
 父仓线路、首次克隆和拉取更新各有来源块；已能读取 `.gitmodules` 的递归子仓，在更新前显示“递归来源核对”。首次原生递归克隆仍由 Git 输出注册 URL。平台按地址中的主机识别，不按本地目录名判断。
 
-若 `insteadOf` 改写了 URL，来源块同时列出“解析地址”和“拉取地址”；后者由 `git ls-remote --get-url` 在本地展开，未探测 HTTP 重定向或代理最终出口。首次克隆只读取系统、全局及本次进程的规则，不沿用父仓本地 `insteadOf`；已有子仓拉取读取自身配置，递归子仓也分别按未初始化 / 已初始化采用这两种作用域。新来源块在支持颜色的终端重点显示，写入日志时保留纯文本；URL 凭据与查询参数会脱敏。来源日志位于系统临时目录 `/tmp` 中的 `【MacOS】⏬下载配置当前Git子模块.log`，Git 原生进度仍以终端输出为准。
+若 `insteadOf` 改写了 URL，来源块同时列出“解析地址”和“拉取地址”；后者由 `git ls-remote --get-url` 在本地展开，未探测 HTTP 重定向或代理最终出口。首次克隆只读取系统、全局及本次进程的规则，不沿用父仓本地 `insteadOf`；已有子仓拉取读取自身配置，递归子仓也分别按未初始化 / 已初始化采用这两种作用域。新来源块在支持颜色的终端重点显示，写入日志时保留纯文本；URL 凭据与查询参数会脱敏。来源日志位于系统临时目录，文件名为 `【MacOS】⏬下载配置当前Git子模块.log`，Git 原生进度仍以终端输出为准。
+
+## 一、<span id="quick-flow">快速流程</span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+
+- 1、在父仓根目录或其直属同名脚本包中运行，确认脚本自动定位的父仓，并核对 `SUBMODULE_REPO_URLS`。
+
+- 2、阅读自述后继续；脚本准备父仓远端与分支，尝试拉取父仓，再检查菜单依赖。
+  - 如果父仓有未提交改动，跳过父仓 `pull --rebase`，继续后续流程。
+
+- 3、在菜单选择同步范围。
+  - 如果选全量模式，须输入 `YES` 确认删除重建，其它输入取消。
+  - 如果选“只更新目前已有的”，只处理清单内已存在的子仓；一个也没有时转入全量模式。
+  - 如果选“选择指定子模块同步”，勾选后按空格确认。
+
+- 4、先补齐 `.gitmodules` 缺项，再处理目录。
+  - 如果选全量模式，清洁检查通过后删除清单目标、对应旧仓名目录及缓存，再按清单重建；其它子仓目录保留。
+
+- 5、克隆缺失子仓，或对已有子仓执行 `fetch → checkout -B → reset --hard`，对齐远端 `main`；远端没有该分支时使用其默认分支。
+  - 如果子仓有未提交内容，会阻断对应更新或删除；仅有本地独有提交仍可能被重置，全量模式还可能删除其历史。
+
+- 6、按各子仓记录的提交递归初始化内层子模块，整理关联并更新父仓指针；默认有变化就自动提交父仓，不自动推送。
+  - 如果要保留修改待审查，运行前设置 `AUTO_PARENT_COMMIT=0`；自动推送开关默认 `AUTO_PARENT_PUSH=0`。
+
+**目的：** 下载或更新清单内子仓到所选远端分支的最新提交，并同步父仓记录。
 
 <strong id="submodule-quick-look">先看例子：同一份子模块配置，跟着父仓走不同平台</strong>
 
@@ -67,9 +90,9 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 
 **下载脚本的 Gitee 传输规则：** `【MacOS】⏬下载配置当前Git子模块.command` 在本次运行中，将 `git@gitee.com:`、`ssh://git@gitee.com/`、`ssh://git@gitee.com:22/` 开头的标准地址统一通过 `https://gitee.com/` 访问，保留账号、真实仓名和分支；即使设置 `GIT_URL_STYLE=ssh`，这类 Gitee 地址仍使用 HTTPS。首次 `clone --recurse-submodules` 和后续递归同步都继承该规则，历史子模块中的 SSH 地址无需新电脑先配置 SSH 密钥。
 
-规则通过追加进程级 `GIT_CONFIG_COUNT` / `url.https://gitee.com/.insteadOf` 配置传给子进程，不写入全局 Git 配置，也不依赖其它工程路径。GitHub、其它主机及非 `22` 的自定义 SSH 端口保持原规则。克隆或递归更新失败会返回非零状态，停止本轮同步并保留错误；不会再输出该项同步成功。原有清单、浅克隆参数和全量模式的删除重建策略保留。
+规则通过追加进程级 `GIT_CONFIG_COUNT` / `url.https://gitee.com/.insteadOf` 配置传给子进程，不写入全局 Git 配置，也不依赖其它工程路径。GitHub、其它主机及非 `22` 的自定义 SSH 端口保持原规则。克隆或递归更新失败会返回非零状态，停止本轮同步并保留错误；不会再输出该项同步成功。各仓清单与浅克隆参数保留；全量删除重建须输入 `YES` 确认，范围限定为清单目标及对应旧仓名目录。
 
-## 一、脚本用途 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## 二、脚本用途 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 | 项目 | 说明 |
 |---|---|
@@ -81,9 +104,11 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 | 是否含高风险命令 | `是` |
 | zsh 静态检查 | `已通过 zsh -n，未执行真实下载` |
 
-## 二、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## 三、运行方式 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-推荐双击 `.command` 运行。终端方式如下：
+脚本支持直接放在目标父仓根目录，也支持保留在直属同名脚本包内。此处直接运行会自动定位上层 `JobsCommand@Gits`；先核对内置 `SUBMODULE_REPO_URLS`，避免对错误清单执行全量重建。
+
+准备好后，双击脚本，或在本脚本包目录执行：
 
 ```shell
 chmod +x './【MacOS】⏬下载配置当前Git子模块.command'
@@ -94,49 +119,50 @@ chmod +x './【MacOS】⏬下载配置当前Git子模块.command'
 
 进入“选择指定子模块同步（可多选）”后，用 ↑ / ↓ 移动，按回车（Enter）勾选或取消项目；最后按 **空格键（Space）确认并开始同步**，无需再按回车。列表底部会持续显示操作提示；按 ← 返回上一页。
 
-## 三、本次升级内容 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## 四、脚本结构 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-- 统一脚本解释器为 `# shell: zsh`。
-- 增加 README 展示与回车阻塞，防止双击误操作。
-- 增加 Jobs 标准彩色日志函数，脚本日志写入系统临时目录 `/tmp`，文件名为 `【MacOS】⏬下载配置当前Git子模块.log`。
-- 增加 `SCRIPT_DIR` / `SCRIPT_PATH` 标准路径变量。
-- 使用 `main "$@"` 作为统一入口。
-- 原业务逻辑保留在 `run_original_logic` 模块内，方便后续继续拆分重构。
-- 注入 Homebrew 健康自检标准模块：架构判断、shellenv 注入、当前会话生效、可选更新。
-- 已修正常见旧式升级交互文案与直接强制升级命令。
+- 使用系统 `/bin/zsh`，先显示内置自述并等待确认。
+- `main` 编排环境检查、父仓定位、菜单和同步，各步骤由独立函数完成。
+- 每份脚本独立携带依赖自检、来源日志与业务实现；各仓清单保留，共同逻辑保持一致。
+- 日志位于系统临时目录，文件名为 `【MacOS】⏬下载配置当前Git子模块.log`。
 
-## 四、Homebrew 标准 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## 五、Homebrew 标准 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 - 已有 Homebrew 时保留原有维护交互，不因目录只读而自动另装。
 - [**Homebrew**](https://brew.sh/) 安装路径由用户选择：已有可运行安装时复用；确实需要安装时先强提示，只有精确输入大写 `YES` 才选择系统标准目录，其它输入或直接回车选择当前用户的 `.local/homebrew`。`YES` 只表示选择路径，权限与密码由官方安装器实际处理；有管理员权限也可以选用户目录。选定路径失败立即停止，不自动切换；`Ctrl+C` / 输入结束取消整个任务。
 - 用户目录安装需要可用 Git 与 curl；后续系统级软件仍可能要求管理员权限。
 
-## 五、注意事项 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## 六、注意事项 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 - 我没有在生成阶段执行脚本里的 macOS 专属命令，例如 `brew`、`pod`、`flutter`、`xcodebuild`、`osascript`、`sudo`、模拟器控制等。
 - 首次运行前建议先阅读本 README，再执行脚本。
-- 如果脚本涉及工程目录，请确认当前目录或拖入路径正确。
+- 处理目录由脚本位置自动定位：仓库根目录或直属同名脚本包；不使用拖入路径，运行前确认显示的父仓。
+- 全量模式逐项检查后删除清单目标、对应旧仓名目录及缓存，再按清单重建；其它子仓目录保留。
 - 如果脚本涉及 Git / CocoaPods / Flutter 依赖更新，建议先提交或备份本地改动。
-- 脚本日志写入系统临时目录 `/tmp` 中的 `【MacOS】⏬下载配置当前Git子模块.log`；新来源块为纯文本，Git 原生进度以终端输出为准。
+- 脚本日志写入系统临时目录，文件名为 `【MacOS】⏬下载配置当前Git子模块.log`；新来源块为纯文本，Git 原生进度以终端输出为准。
 
-## 六、流程图 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## 七、流程图 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+
+流程图中的操作目录均指脚本自动定位的父仓根目录；同步失败会中断本轮，已完成的目录删除或更新可能保留。
 
 ```mermaid
-graph TD
-    A([开始]) --> B[显示内置自述并等待回车]
-    B --> C[初始化脚本路径与日志]
-    C --> D{是否涉及 Homebrew 或依赖工具}
-    D --> |是| E[执行标准自检 / 可选升级]
-    D --> |否| F[进入业务逻辑]
-    E --> F[进入业务逻辑]
-    F --> G{是否存在危险操作}
-    G --> |是| H[要求明确确认]
-    G --> |否| I[执行任务]
-    H --> I[执行任务]
-    I --> J([结束])
+flowchart TD
+    A["确认自动定位的父仓并核对清单"] --> B["阅读自述；准备父仓、尝试拉取并检查菜单依赖"]
+    B --> C{"选择同步范围"}
+    C -->|"全量"| D["YES 确认后补齐登记；检查并删除清单目标、对应旧仓名目录及缓存"]
+    C -->|"只更新已有"| E{"存在清单内本地子仓？"}
+    E -->|"否"| D
+    E -->|"是"| F["补齐登记；保留已有目录"]
+    C -->|"指定"| F
+    D --> G["按清单克隆；检查并更新所选子仓到远端分支"]
+    F --> G
+    D -->|"检查或删除失败"| X["停止并检查当前状态"]
+    G -->|"同步失败"| X
+    G -->|"成功"| H["递归同步内层记录的提交；整理关联与父仓指针"]
+    H --> I["默认提交父仓变化，不推送；输出结果"]
 ```
 
-## 七、<span id="submodule-address-rules">多平台子模块地址</span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+## 八、<span id="submodule-address-rules">多平台子模块地址</span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
 - 支持 [**GitHub**](https://github.com)、[**Gitee**](https://gitee.com)、[**GitLab**](https://about.gitlab.com) 和自建 Git 服务器；接受 HTTPS、`git@host:namespace/repo.git` 和 `ssh://git@host:端口/namespace/repo.git`，保留嵌套 namespace 与显式端口。配置中禁止携带 HTTP 用户凭据或 SSH 密码。
 - `REMOTE_NAME` 默认 `origin`。已有 `.gitmodules` 的 URL、分支、缺省分支和扩展字段保持原样；`../真实仓名.git` 随所选父 remote 的平台、namespace、协议与端口解析，仓名不从本地目录猜测。
@@ -154,9 +180,9 @@ AUTO_PARENT_COMMIT=0 \
 
 普通 `git clone --recurse-submodules` 由 Git 依据父仓默认 remote 解析相对 URL；`REMOTE_NAME` 是本脚本的线路选择参数。
 
-### （一）离线回归验证 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+### 8.1、离线回归验证 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-需要 `python3`、`zsh` 和 `git`，并保留 JobsGenesis 工作树内全部 7 份入口的目录结构。在本脚本与 `README.md` 所在目录运行：
+需要 `python3`、`zsh` 和 `git`，并保留 `JobsGenesis` 及同级 `JobsBaseConfig` 中 8 份下载入口的目录结构。在本脚本与 `README.md` 所在目录运行：
 
 ```shell
 python3 \
@@ -165,6 +191,6 @@ python3 \
   -p 'test_*.py'
 ```
 
-测试只允许 `file://` 协议，在临时目录创建带提交的父子仓并执行本地递归克隆，结合隔离 Git 配置和受控命令替身检查提取出的函数，覆盖 Gitee 地址边界、递归子进程继承、已有进程配置保留与失败返回，以及来源日志、URL 脱敏和克隆 / 拉取配置作用域；不启动交互菜单，不访问远端，不修改真实工程工作区或全局 Git 配置。测试通过仅表示离线回归通过，新电脑真实下载仍须使用更新后的入口验收。
+测试仅在临时仓使用本地协议、隔离 Git 配置与受控命令替身，覆盖地址与来源日志、根目录和脚本包定位、全量 `YES` 确认、缓存归属、异名 section、失败返回及无关暂存内容保留；不访问真实远端，不修改业务仓或全局 Git 配置。测试通过仅表示离线回归通过，新电脑真实下载仍须使用更新后的入口验收。
 
 <a id="🔚" href="#前言" style="font-size:17px; color:green; font-weight:bold;">我是有底线的➤点我回到首页</a>
