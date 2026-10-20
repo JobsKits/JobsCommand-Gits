@@ -1,7 +1,7 @@
 #!/bin/zsh
 # 脚本自述：
 # - 脚本名称：【MacOS】🧭更新引用Git父仓=>子仓.command
-# - 核心用途：以磁盘第一层现存子 Git 为准，对齐父仓子模块登记和当前提交指针。
+# - 核心用途：以第一层子 Git 和已登记的安全嵌套子 Git 为准，对齐父仓登记和当前提交指针。
 # - 影响范围：清理缺失关联、暂存当前 HEAD、初始化本地登记并用 Git 官方命令归集元数据。
 # - 运行提示：先回车查看计划；再回车跳过、输入任意字符执行；保留源码、分支与真实远端，不联网、不提交、不推送。
 # shell: zsh
@@ -50,7 +50,7 @@ show_script_intro_and_wait() {
   LOG_FILE="${TMPDIR:-/tmp}"
   LOG_FILE="${LOG_FILE%/}/${SCRIPT_BASENAME}.$$.log"
   intro_line title '【MacOS】🧭更新引用Git父仓=>子仓.command · 按磁盘修复子模块关联'
-  intro_line body '1、只扫描父仓第一层现存子 Git；缺失目录的登记和旧 gitlink 会移除，未下载的子模块也在此范围。'
+  intro_line body '1、扫描第一层子 Git，并保留已登记且路径安全的嵌套子 Git；缺失 / 未下载的登记和旧 gitlink 会移除。'
   intro_line body '2、保留仍存在条目的 URL、分支与扩展字段；暂存子仓当前 HEAD，不拉取、不切分支、不提交、不推送。'
   intro_line body '3、先预检和展示计划，再确认执行；使用 Git absorbgitdirs 归集，不手工移动或覆盖 Git 元数据。'
   intro_line body '4、执行前备份关联配置与索引；元数据归属不明、冲突或链接工作树直接停止。'
@@ -329,9 +329,27 @@ load_existing_submodule_sections() {
     EXISTING_SECTION_NAMES[$sub_path]="$section"; EXISTING_SECTION_PATHS[$section]="$sub_path"
   done < <(git config --null --file "$file" --get-regexp '^submodule\..*\.path$' 2>/dev/null || true)
 }
-# 只扫描第一层真实目录，跳过依赖、供应商与构建目录。
+# 已登记嵌套路径只穿过普通目录，不跟随符号链接或跨越其它 Git 工作树。
+validate_subgit_worktree_path() {
+  local sub_path="$1" child="$PARENT_REPO_DIR" component=""
+  valid_name "$sub_path" || { fail "${sub_path}：子仓路径不安全。"; return 2; }
+  for component in "${(@s:/:)sub_path}"; do
+    [[ "${component:l}" != .git ]] || { fail "${sub_path}：子仓路径穿过 Git 元数据目录。"; return 2; }
+    case "$component" in
+      node_modules|Pods|PodsManual|ManualBy*Pods@Pods|.dart_tool|build|DerivedData|dist|.venv|venv|vendor|third_party)
+        fail "${sub_path}：子仓路径穿过元数据、依赖或供应商目录。"; return 2 ;;
+    esac
+    child="$child/$component"
+    [[ ! -L "$child" ]] || { fail "${sub_path}：子仓路径含符号链接。"; return 2; }
+    [[ -d "$child" ]] || return 1
+    if [[ "$child" != "$PARENT_REPO_DIR/$sub_path" && ( -e "$child/.git" || -L "$child/.git" ) ]]; then
+      fail "${sub_path}：中途目录是其它 Git 工作树，停止跨仓接管。"; return 2
+    fi
+  done
+}
+# 第一层按原规则发现；更深层只补采已有登记，不递归接管分类目录内的其它仓库。
 discover_current_subgit_dirs() {
-  local child="" name=""
+  local child="" name="" sub_path="" validation_result=0
   CURRENT_SUBGIT_DIRS=()
   while IFS= read -r -d '' child; do
     name="${child:t}"
@@ -342,7 +360,19 @@ discover_current_subgit_dirs() {
     valid_name "$name" || { fail '子仓目录名含不支持的控制字符。'; return 1; }
     CURRENT_SUBGIT_DIRS+=("$name")
   done < <(find "$PARENT_REPO_DIR" -mindepth 1 -maxdepth 1 -type d -print0)
-  (( ${#CURRENT_SUBGIT_DIRS} )) || { fail '没有发现第一层子 Git；停止，避免误清理全部登记。'; return 1; }
+  for sub_path in "${(@ok)EXISTING_SECTION_NAMES}"; do
+    [[ "$sub_path" == */* ]] || continue
+    if validate_subgit_worktree_path "$sub_path"; then
+      child="$PARENT_REPO_DIR/$sub_path"
+      [[ -e "$child/.git" || -L "$child/.git" ]] || continue
+      CURRENT_SUBGIT_DIRS+=("$sub_path")
+    else
+      validation_result=$?
+      (( validation_result == 1 )) && continue
+      return 1
+    fi
+  done
+  (( ${#CURRENT_SUBGIT_DIRS} )) || { fail '没有发现可处理子 Git；停止，避免误清理全部登记。'; return 1; }
 }
 # 直接读取标记以兼容目录改名后旧 core.worktree 已失效的正常子模块。
 read_child_gitdir() {
@@ -499,6 +529,7 @@ recheck_plan() {
   [[ "$PARENT_HEAD_BEFORE" == "$(git -C "$PARENT_REPO_DIR" rev-parse --verify HEAD 2>/dev/null || print -r -- unborn)" ]] || { fail '父仓 HEAD 已变化。'; return 1; }
   for sub_path in "${CURRENT_SUBGIT_DIRS[@]}"; do
     git_dir="${CHILD_GIT_DIRS[$sub_path]}"; child="$PARENT_REPO_DIR/$sub_path"
+    validate_subgit_worktree_path "$sub_path" || { fail "${sub_path}：子仓路径在预览后失效或不安全。"; return 1; }
     [[ "$git_dir" == "$(read_child_gitdir "$child")" && "${CHILD_HEADS[$sub_path]}" == "$(git --git-dir="$git_dir" --work-tree="$child" rev-parse HEAD)" && "${CHILD_CONFIGS[$sub_path]}" == "$(file_checksum "$git_dir/config")" && "${CHILD_INDEXES[$sub_path]}" == "$(file_checksum "$git_dir/index")" ]] || { fail "${sub_path}：元数据在预览后变化。"; return 1; }
   done
 }
@@ -617,7 +648,7 @@ verify_alignment() {
 }
 # 只在核验通过后说明完成，日志保留备份位置。
 print_final_report() {
-  success_echo "已完成 ${#CURRENT_SUBGIT_DIRS} 个直属子仓关联修复；未联网、未提交、未推送。"
+  success_echo "已完成 ${#CURRENT_SUBGIT_DIRS} 个子仓关联修复；未联网、未提交、未推送。"
   git -C "$PARENT_REPO_DIR" status --short
 }
 # 执行写入前的确认，空输入和预览入口都保留原状态。
@@ -638,8 +669,8 @@ main() {
   show_script_intro_and_wait "$@" # 首先显示内置自述并处理预览 / 交互确认。
   initialize_script_runtime # 初始化选项、日志及本进程状态。
   check_environment # 确认父仓定位、工作树类型与索引写入边界。
-  discover_current_subgit_dirs # 扫描第一层现存子 Git，跳过依赖和供应商目录。
-  load_existing_submodule_sections # 保留已有 section 和共享配置。
+  load_existing_submodule_sections # 先读取已有 section、路径和共享配置。
+  discover_current_subgit_dirs # 扫描第一层子 Git，并补采已登记的安全嵌套路径。
   collect_submodule_urls # 验明元数据、改名归属及真实远端，保存原始状态。
   print_preflight_report # 明示保留、改名、缺失登记清理和当前指针计划。
   confirm_plan # 默认跳过；明确确认后才允许写入。

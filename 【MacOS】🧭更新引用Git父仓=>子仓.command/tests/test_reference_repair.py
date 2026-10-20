@@ -193,6 +193,74 @@ class ReferenceRepairTests(unittest.TestCase):
                 self.assertEqual("already staged", self.git(parent, "show", ":unrelated"))
                 self.assertEqual(before["head"], self.git(parent, "rev-parse", f":{child.name}"))
 
+    def test_registered_nested_path_preserves_section_without_adopting_siblings(self) -> None:
+        for number, source in enumerate(SCRIPTS):
+            with self.subTest(source=source):
+                child_path = "OS@Extension/平台 分类/Child 名称"
+                parent, child = self.fixture(number, child_path)
+                sibling = self.repo(child.parent / "Unregistered", "Unregistered")
+                section = "existing custom section"
+                for key, value in {"path": child_path, "url": "../preserved.git", "ignore": "dirty", "update": "none"}.items():
+                    self.git(parent, "config", "-f", ".gitmodules", f"submodule.{section}.{key}", value)
+                self.git(parent, "add", ".gitmodules")
+                self.git(parent, "update-index", "--add", "--cacheinfo", "160000", self.git(child, "rev-parse", "HEAD"), child_path)
+                self.git(parent, "commit", "-m", "record nested relation")
+                entry = self.entry(source, parent)
+                sibling_before = {"head": self.git(sibling, "rev-parse", "HEAD"), "status": self.git(sibling, "status", "--porcelain"), "config": (sibling / ".git/config").read_bytes()}
+                for _ in range(2):
+                    self.assert_success(self.run_entry(entry))
+                    self.assertEqual(child_path, self.git(parent, "config", "-f", ".gitmodules", f"submodule.{section}.path"))
+                    self.assertEqual("../preserved.git", self.git(parent, "config", "-f", ".gitmodules", f"submodule.{section}.url"))
+                    self.assertEqual("dirty", self.git(parent, "config", "-f", ".gitmodules", f"submodule.{section}.ignore"))
+                    self.assertEqual("none", self.git(parent, "config", "-f", ".gitmodules", f"submodule.{section}.update"))
+                    self.assertEqual("", self.git(parent, "config", "-f", ".gitmodules", f"submodule.{section}.branch", check=False))
+                    self.assertEqual(child_path + "\0", self.git(parent, "ls-files", "-z", "--", "OS@Extension"))
+                    self.assertEqual(parent, Path(self.git(child, "rev-parse", "--show-superproject-working-tree")))
+                self.assertTrue((sibling / ".git").is_dir())
+                self.assertEqual(sibling_before["head"], self.git(sibling, "rev-parse", "HEAD"))
+                self.assertEqual(sibling_before["status"], self.git(sibling, "status", "--porcelain"))
+                self.assertEqual(sibling_before["config"], (sibling / ".git/config").read_bytes())
+
+    def test_registered_nested_symlinks_and_intermediate_git_are_blocked(self) -> None:
+        for number, source in enumerate(SCRIPTS):
+            for variant in ["container-link", "child-link", "intermediate-git"]:
+                with self.subTest(source=source, variant=variant):
+                    base = self.root / str(number) / variant
+                    parent = self.repo(base / "Parent", "Parent")
+                    external = self.repo(base / "External/Child", "Child")
+                    container = parent / "OS@Extension"
+                    if variant == "container-link":
+                        container.symlink_to(external.parent, target_is_directory=True)
+                    elif variant == "child-link":
+                        container.mkdir()
+                        (container / "Child").symlink_to(external, target_is_directory=True)
+                    else:
+                        self.repo(container, "Intermediate")
+                        self.repo(container / "Child", "Child")
+                    self.git(parent, "config", "-f", ".gitmodules", "submodule.custom.path", "OS@Extension/Child")
+                    self.git(parent, "config", "-f", ".gitmodules", "submodule.custom.url", "../Child.git")
+                    entry = self.entry(source, parent)
+                    before = self.parent_files(parent)
+                    self.assert_stopped(self.run_entry(entry))
+                    self.assertEqual(before, self.parent_files(parent))
+                    self.assertTrue((external / ".git").is_dir())
+                    self.assertFalse((parent / ".git/jobs-submodule-backups").exists())
+
+    def test_missing_nested_registration_is_removed_without_recursing(self) -> None:
+        for number, source in enumerate(SCRIPTS):
+            with self.subTest(source=source):
+                parent, child = self.fixture(number)
+                missing = parent / "OS@Extension/Missing"
+                missing.mkdir(parents=True)
+                (missing / "notes").write_text("retain source\n")
+                self.git(parent, "config", "-f", ".gitmodules", "submodule.stale.path", "OS@Extension/Missing")
+                self.git(parent, "config", "-f", ".gitmodules", "submodule.stale.url", "../Missing.git")
+                self.git(parent, "update-index", "--add", "--cacheinfo", "160000", self.git(child, "rev-parse", "HEAD"), "OS@Extension/Missing")
+                self.assert_success(self.run_entry(self.entry(source, parent)))
+                self.assertEqual("", self.git(parent, "config", "-f", ".gitmodules", "submodule.stale.path", check=False))
+                self.assertEqual("", self.git(parent, "ls-files", "--", "OS@Extension/Missing"))
+                self.assertEqual("retain source\n", (missing / "notes").read_text())
+
     def test_missing_registration_is_removed_but_disk_content_is_kept(self) -> None:
         for number, source in enumerate(SCRIPTS):
             with self.subTest(source=source):

@@ -26,7 +26,7 @@
 ## <span id="jobs-toc-heading-1" data-jobs-toc="v2">🔥 <font id=前言>前言</font></span><!-- jobs-toc:heading-end -->
 
 - 这个脚本用于修复父 [**GitHub**](https://github.com) / Git 仓库管理多个子 Git 时，目录改名后引发的子模块元数据错位问题。
-- 脚本以当前磁盘上真实存在的第一层子 Git 目录为基准，对齐 `.gitmodules`、父仓库 gitlink、本地 `.git/config` 和子目录 `.git` 指针。
+- 脚本以第一层现存子 Git，以及 `.gitmodules` 已登记且路径安全的现存嵌套子 Git 为基准，对齐 `.gitmodules`、父仓库 gitlink、本地 `.git/config` 和子目录 `.git` 指针。
 - 脚本会自动定位目标父 Git 仓库：优先处理脚本所在目录上一层的 Git 仓库；如果脚本直接放在 Git 根目录，则处理当前目录。
 - 在当前“一脚本一目录”结构中，目标父仓库就是：
 
@@ -38,8 +38,8 @@
 
 - 1、阅读自述并确认目标父仓；此包内入口定位上层 `JobsCommand@Gits`，放在父仓根目录时处理该根目录。
 
-- 2、扫描父仓第一层现存子 Git，预检远端、索引与元数据归属，展示修复和清理计划。
-  - 指针破损、元数据冲突或属于链接工作树时停止，不覆盖。
+- 2、扫描父仓第一层现存子 Git，并补采已有登记的安全嵌套路径；预检远端、索引与元数据归属，展示修复和清理计划。
+  - 指针破损、元数据冲突、链接工作树、符号链接路径或中途跨过其它 Git 工作树时停止，不覆盖。
 
 - 3、确认按磁盘现状修复，备份关联配置与索引；直接回车跳过，输入任意字符后回车执行。
   - `--dry-run`：只预检和预览，不改关联。
@@ -82,6 +82,16 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 
 本脚本负责**修复目录与 Git 元数据的对应关系**：已有条目保留 section、URL、branch 和扩展字段；磁盘上已不存在的旧 path 按工具职责移除。新增登记满足全部已配置线路的同站、同命名空间、子仓同名条件时才写相对 URL，否则保留明确原地址。子仓真实 `origin` 仍单独保存，不能把共享的 `../JobsCommand-Flutter.git` 当成它的远端地址。修复不提交、不推送，也不会批量迁移存量固定平台 URL。
 
+普通分类目录可以容纳父仓直接管理的子模块，例如以下路径结构；`url` 按子仓真实远端填写：
+
+```ini
+[submodule "windows-extension"]
+    path = OS@Extension/WindowsOS@Extension
+    url = ../真实仓名.git
+```
+
+这里 `OS@Extension` 是普通目录，`windows-extension` 仍是原 section；脚本保留这类已登记且现存的安全嵌套路径。只检查登记中的精确路径，不递归发现同一分类目录里的未登记仓库；路径中的符号链接、元数据 / 依赖 / 供应商目录或中途独立 Git 工作树会阻断修复。已有登记的嵌套路径缺失或没有 `.git` 标记时，仍按缺失关联清理。
+
 ## <span id="jobs-toc-heading-3" data-jobs-toc="v2">二、适用场景 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 - 当前磁盘目录名已经是你想要的最终形态，但普通 `git status` 输出和真实目录不一致。
@@ -120,7 +130,7 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 
 ## <span id="jobs-toc-heading-6" data-jobs-toc="v2">五、执行前检查 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
-- 确认当前磁盘上的第一层子 Git 目录名就是最终想保留的目录名。
+- 确认第一层子 Git 和已有登记的嵌套子 Git 路径就是最终想保留的路径；分类目录内未登记的仓库不会递归接管。
 - 确认每个子 Git 目录都能找到 `remote.origin.url`。如果某个子目录完全没有远端地址，脚本会停止，避免写坏 `.gitmodules`。
 - 如果父仓库里有其它未提交改动，脚本不会回滚；修复完成后需要你自己决定是否一起提交。
 
@@ -130,7 +140,7 @@ url = https://github.com/JobsKits/JobsCommand-Flutter.git
 flowchart TD
   A["启动脚本"] --> B["展示内置自述并等待确认"]
   B --> C["检查 Git 和父仓库"]
-  C --> D["扫描父仓库第一层真实子 Git 目录"]
+  C --> D["扫描第一层子 Git，补采已有登记的安全嵌套路径"]
   D --> E["读取每个子 Git 的 origin URL"]
   E --> F["预检元数据归属、索引与链接工作树；展示清理计划"]
   F --> G{"用户输入任意字符执行？"}
@@ -156,7 +166,7 @@ flowchart TD
 - 这个脚本会改 Git 元数据，不是纯查看脚本。
 - 脚本判断标准是“当前磁盘目录优先”。如果你当前目录名本身还没整理好，请先改目录，再运行脚本。
 - 脚本不会执行 `git commit`、`git push`，也不会删除当前子 Git 目录。
-- 隔离回归覆盖根目录与脚本包定位、目录改名、空格路径、本地提交与索引保留、缺失登记清理、元数据冲突、链接工作树、预览和迁移失败。在本脚本包目录执行：
+- 隔离回归覆盖根目录与脚本包定位、目录改名、空格路径、嵌套登记与 section 异名保留、未登记同级仓排除、符号链接 / 跨仓路径阻断、本地提交与索引保留、缺失登记清理、元数据冲突、链接工作树、预览和迁移失败。在本脚本包目录执行：
 
   ```shell
   python3 './tests/test_reference_repair.py'

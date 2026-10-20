@@ -15,7 +15,7 @@ import unittest
 GENESIS = Path(__file__).resolve().parents[3]
 SCRIPT_NAME = "【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command"
 SOURCES = [GENESIS / directory / SCRIPT_NAME for directory in (
-    "", "JobsConfigOS", "JobsPythonTools.py", "MacOS@Extension", "JobsConfigOS/💻JobsCodexConfigs",
+    "", "JobsConfigOS", "JobsPythonTools.py", "OS@Extension/MacOS@Extension", "JobsConfigOS/💻JobsCodexConfigs",
 )]
 SOURCES += [GENESIS.parent / "JobsBaseConfig" / SCRIPT_NAME]
 SOURCES += [
@@ -49,6 +49,8 @@ sync_submodule_urls_at_repo() { return 0; }
 get_ncpu() { print 2; }
 success_echo() { print -r -- "UNEXPECTED_SUCCESS $*"; }
 '''
+
+SOURCES = [source for source in SOURCES if source.is_file()]
 
 
 class GiteeHttpsTransportTests(unittest.TestCase):

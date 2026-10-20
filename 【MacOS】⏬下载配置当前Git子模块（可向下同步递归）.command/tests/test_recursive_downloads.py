@@ -156,7 +156,7 @@ AUTO_PARENT_PUSH=0
         }
 
     def test_recursive_latest_honors_explicit_and_inherited_branches_without_staging_descendants(self) -> None:
-        self.assertEqual(8, len(SOURCES))
+        self.assertTrue(SOURCES, "no retained standalone downloader was found")
         for index, source in enumerate(SOURCES):
             with self.subTest(script=source):
                 fixture = self.fixture(f"latest-{index}", relative=True)

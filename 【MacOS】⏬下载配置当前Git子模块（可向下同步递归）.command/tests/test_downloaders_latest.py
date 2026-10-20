@@ -18,7 +18,7 @@ SCRIPT_NAME = "【MacOS】⏬下载配置当前Git子模块（可向下同步递
 GENESIS = Path(__file__).resolve().parents[3]
 CANDIDATES = [Path(__file__).resolve().parents[1] / SCRIPT_NAME]
 CANDIDATES += [GENESIS / folder / SCRIPT_NAME for folder in (
-    "", "JobsConfigOS", "JobsPythonTools.py", "MacOS@Extension", "JobsConfigOS/💻JobsCodexConfigs",
+    "", "JobsConfigOS", "JobsPythonTools.py", "OS@Extension/MacOS@Extension", "JobsConfigOS/💻JobsCodexConfigs",
 )]
 CANDIDATES += [
     GENESIS.parent / "JobsBaseConfig" / SCRIPT_NAME,
@@ -154,14 +154,17 @@ repo_name_by_path() { print -r -- "$1"; }
                 self.assertIsNotNone(config, str(source))
                 configurations.add(config.group())
                 implementations.add(re.sub(CONFIG_PATTERN, 'CONFIG', content, count=1))
-                self.assertEqual(1, len(re.findall('^main\\(\\)', content, re.M)))
-                self.assertEqual(1, content.count('main "$@"'))
+                outer = re.sub(r"(?ms)^  engine_code=.*?^JOBS_READONLY_PULL_ENGINE$", '', content, count=1)
+                self.assertEqual(1, len(re.findall('^main\\(\\)', outer, re.M)))
+                self.assertEqual(1, outer.count('main "$@"'))
                 self.assertNotIn('jobs_run_original_script', content)
                 self.assertNotIn('run_original_logic', content)
                 self.assertNotIn('collect_existing_child_git_dirs', content)
-                main = re.search('(?ms)^main\\(\\) \\{\\n(.*?)^\\}', content).group(1).splitlines()
-                self.assertTrue(main[0].strip().startswith('show_script_intro_and_wait #'))
-                for line in main:
+                main = re.search('(?ms)^main\\(\\) \\{\\n(.*?)^\\}', outer).group(1).splitlines()
+                self.assertTrue(main[0].strip().startswith('select_download_operation_mode #'))
+                maintenance = re.search('(?ms)^run_management_download\\(\\) \\{\\n(.*?)^\\}', outer).group(1).splitlines()
+                self.assertTrue(maintenance[0].strip().startswith('show_script_intro_and_wait #'))
+                for line in main + maintenance:
                     self.assertRegex(line, '^  \\w+(?: [^#\\n]+)? # [^\\n]+$')
         self.assertEqual(1, len(implementations))
         if len(SOURCES) > 1:
@@ -305,6 +308,86 @@ if sync_selected_submodules_to_latest "$selected"; then print UNEXPECTED_SUCCESS
                 self.assertIn("拒绝", output)
                 self.assertEqual(before, (target / ".git/config").read_bytes())
 
+    def test_nested_configured_paths_keep_the_classification_directory(self) -> None:
+        for source in SOURCES:
+            with self.subTest(source=source):
+                self.shell(source, r'''
+SUBMODULE_REPO_URLS=(
+  'https://github.com/JobsKits/MacOS_Extension|OS@Extension/MacOS@Extension'
+  'https://github.com/JobsKits/WindowsOS_Extension|OS@Extension/WindowsOS@Extension'
+)
+load_configured_submodules
+[[ "${CONFIG_PATHS[1]}" == OS@Extension/MacOS@Extension ]]
+[[ "${CONFIG_PATHS[2]}" == OS@Extension/WindowsOS@Extension ]]
+[[ ! -e OS@Extension ]]
+for invalid in '' /absolute 'OS@Extension/' 'OS@Extension//child' './child' '../child' 'OS@Extension/../child' 'OS@Extension/.GIT/child' 'OS@Extension/-child' 'OS@Extension/child|other' $'OS@Extension/child\t'; do
+  if validate_local_path "$invalid"; then print -r -- "UNEXPECTED_ACCEPTED:$invalid"; exit 91; fi
+done
+''')
+
+    def test_nested_clone_reuses_different_section_and_preserves_sibling(self) -> None:
+        for index, source in enumerate(SOURCES):
+            with self.subTest(source=source):
+                case = self.root / f'nested-clone-{index}'
+                parent, leaf = case / 'parent', case / 'leaf'
+                for repo in (parent, leaf):
+                    repo.mkdir(parents=True)
+                    self.git(repo, 'init', '-q', '-b', 'main')
+                    (repo / 'seed').write_text('fixture\n')
+                    self.git(repo, 'add', 'seed')
+                    self.git(repo, 'commit', '-qm', 'fixture')
+                self.git(parent, 'remote', 'add', 'origin', 'https://code.example/team/Parent.git')
+                nested = 'OS@Extension/WindowsOS@Extension'
+                self.git(parent, 'config', '-f', '.gitmodules', 'submodule.Stable Windows section.path', nested)
+                self.git(parent, 'config', '-f', '.gitmodules', 'submodule.Stable Windows section.url', leaf.as_uri())
+                self.git(parent, 'config', '-f', '.gitmodules', 'submodule.Stable Windows section.update', 'checkout')
+                body = self.script_body(parent) + f'leaf_url={shlex.quote(leaf.as_uri())}\n' + r'''
+SUBMODULE_RECURSIVE=0
+ensure_submodule_worktree_present 'OS@Extension/WindowsOS@Extension' "$leaf_url" main
+ensure_gitmodules_entry 'OS@Extension/WindowsOS@Extension'
+'''
+                self.shell(source, body)
+                child = parent / nested
+                self.assertTrue((child / '.git').is_file())
+                self.assertEqual(str(parent), self.git(child, 'rev-parse', '--show-superproject-working-tree'))
+                self.assertEqual('OS@Extension/WindowsOS@Extension', self.git(parent, 'config', '-f', '.gitmodules', 'submodule.Stable Windows section.path'))
+                self.assertEqual('checkout', self.git(parent, 'config', '-f', '.gitmodules', 'submodule.Stable Windows section.update'))
+                self.assertTrue(self.git(parent, 'ls-files', '--stage', '--', nested).startswith('160000 '))
+                sibling = parent / 'OS@Extension/MacOS@Extension'
+                sibling.mkdir()
+                (sibling / 'keep').write_bytes(b'keep sibling')
+                self.git(parent, 'config', '-f', '.gitmodules', 'submodule.legacy.path', 'OS@Extension')
+                self.git(parent, 'config', '-f', '.gitmodules', 'submodule.legacy.url', leaf.as_uri())
+                before = (parent / '.gitmodules').read_bytes()
+                output = self.shell(source, self.script_body(parent) + r'''
+CONFIG_PATHS=('OS@Extension/WindowsOS@Extension')
+PRUNE_STALE_GITMODULES=1
+FORCE_DELETE=1
+confirm_stale_submodule_removal() { print UNEXPECTED_CONFIRM; return 0; }
+if prune_unconfigured_gitmodules; then print UNEXPECTED_PRUNE; exit 92; fi
+''')
+                self.assertNotIn('UNEXPECTED_', output)
+                self.assertIn('保留分类目录', output)
+                self.assertEqual(before, (parent / '.gitmodules').read_bytes())
+                self.assertEqual(b'keep sibling', (sibling / 'keep').read_bytes())
+                self.assertTrue((child / '.git').is_file())
+
+    def test_nested_path_cannot_cross_an_independent_repository(self) -> None:
+        for index, source in enumerate(SOURCES):
+            with self.subTest(source=source):
+                parent = self.root / f'nested-boundary-{index}'
+                middle = parent / 'OS@Extension'
+                middle.mkdir(parents=True)
+                self.git(middle, 'init', '-q', '-b', 'main')
+                before = (middle / '.git/config').read_bytes()
+                output = self.shell(source, f'cd {shlex.quote(str(parent))}\n' + r'''
+if validate_local_path 'OS@Extension/WindowsOS@Extension'; then print UNEXPECTED_ACCEPTED; exit 93; fi
+if ensure_submodule_worktree_present 'OS@Extension/WindowsOS@Extension'; then print UNEXPECTED_CREATED; exit 94; fi
+''')
+                self.assertNotIn('UNEXPECTED_', output)
+                self.assertEqual(before, (middle / '.git/config').read_bytes())
+                self.assertFalse((middle / 'WindowsOS@Extension').exists())
+
     def test_nested_symlink_components_inside_parent_are_rejected_before_mutation(self) -> None:
         for index, source in enumerate(SOURCES):
             with self.subTest(source=source):
@@ -331,7 +414,7 @@ done
     def test_initialized_entry_stops_before_completion_on_failure(self) -> None:
         for source in SOURCES:
             with self.subTest(source=source):
-                output = self.shell(source, r'''unsetopt ERR_EXIT
+                output = self.shell(source, r'''
 SCRIPT_FILE="$CASE_ROOT/fixture.command"
 TMPDIR="$CASE_ROOT"
 show_script_intro_and_wait() { return 0; }
@@ -341,7 +424,7 @@ ensure_fzf_healthy() { print UNEXPECTED_INSTALL; }
 prepare_preview_runtime() { print UNEXPECTED_PREVIEW; }
 main_menu_loop() { print UNEXPECTED_MENU; }
 report_completion() { print UNEXPECTED_SUCCESS; }
-main
+run_management_download
 ''', expected=37)
                 self.assertIn('EXPECTED_PARENT_FAILURE', output)
                 self.assertNotIn('UNEXPECTED_', output)
