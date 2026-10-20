@@ -41,6 +41,10 @@ error_echo() { print -r -- "$*"; }
 run_cmd() { "$@"; }
 '''
 SYNC_FAILURE_SETUP = r'''
+git init -q -b main "$CASE_ROOT"
+git -C "$CASE_ROOT" remote add origin https://gitee.com/JobsGo/Child.git
+git -C "$CASE_ROOT" commit --allow-empty -qm fixture
+git -C "$CASE_ROOT" update-ref refs/remotes/origin/main HEAD
 clone_url_for_path() { print 'https://gitee.com/JobsGo/Child.git'; }
 is_git_worktree() { return 0; }
 assert_clean_submodule() { return 0; }
@@ -238,24 +242,22 @@ if sync_one_submodule_to_latest "$CASE_ROOT"; then print UNEXPECTED_ZERO; exit 9
                 output = self.shell(source, r'''
 clone_url_for_path() { print 'https://gitee.com/JobsGo/Child.git'; }
 remote_branch_for_url() { print main; }
-remote_branch_exists() { [[ "$BRANCH_EXISTS" == 1 ]]; }
 get_ncpu() { print 1; }
 run_cmd() {
   if [[ "$*" == *' clone '* ]]; then print EXPECTED_CLONE_FAILURE; return 37; fi
+  if [[ "$1" == mkdir ]]; then "$@"; return; fi
   print UNEXPECTED_AFTER_CLONE
   return 0
 }
-for BRANCH_EXISTS in 1 0; do
-  if clone_submodule_worktree "$CASE_ROOT/not-created"; then print UNEXPECTED_ZERO; exit 95; fi
-done
+if clone_submodule_worktree not-created; then print UNEXPECTED_ZERO; exit 95; fi
 clone_submodule_worktree() { return 37; }
 run_cmd() { print UNEXPECTED_REGISTER; return 0; }
-if ensure_submodule_worktree_present "$CASE_ROOT/not-created"; then print UNEXPECTED_ZERO; exit 96; fi
+if ensure_submodule_worktree_present not-created; then print UNEXPECTED_ZERO; exit 96; fi
 ensure_submodule_worktree_present() { return 37; }
 sync_one_submodule_to_latest() { print UNEXPECTED_SYNC; return 0; }
 if sync_selected_submodules_to_latest one two; then print UNEXPECTED_ZERO; exit 97; fi
 ''')
-                self.assertEqual(2, output.count("EXPECTED_CLONE_FAILURE"))
+                self.assertEqual(1, output.count("EXPECTED_CLONE_FAILURE"))
                 self.assertNotIn("UNEXPECTED_", output)
 
     def test_empty_directory_removal_failure_stops_before_registration(self) -> None:
@@ -271,7 +273,7 @@ run_cmd() {
   print UNEXPECTED_REGISTER
   return 0
 }
-if ensure_submodule_worktree_present "$CASE_ROOT/empty-target"; then print UNEXPECTED_ZERO; exit 98; fi
+if ensure_submodule_worktree_present empty-target; then print UNEXPECTED_ZERO; exit 98; fi
 [[ -d "$CASE_ROOT/empty-target" ]]
 ''')
                 self.assertIn("EXPECTED_REMOVE_FAILURE", output)

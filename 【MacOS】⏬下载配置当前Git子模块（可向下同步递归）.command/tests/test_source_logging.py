@@ -159,7 +159,11 @@ clone_url_for_path() { print 'https://gitee.com/team/Child.git'; }
 remote_branch_for_url() { print NETWORK_PROBE >> "$LOG_FILE"; print main; }
 remote_branch_exists() { return 0; }
 get_ncpu() { print 1; }
-run_cmd() { print -r -- "COMMAND $*" >> "$LOG_FILE"; return 37; }
+run_cmd() {
+  print -r -- "COMMAND $*" >> "$LOG_FILE"
+  if [[ "$*" == *' clone '* ]]; then return 37; fi
+  "$@"
+}
 clone_submodule_worktree Child || true
 ''')
                 self.assertLess(disk.index("首次克隆"), disk.index("NETWORK_PROBE"))
@@ -171,9 +175,10 @@ clone_submodule_worktree Child || true
         for source in ALL_SOURCES:
             with self.subTest(script=source):
                 _, disk = self.shell(source, r'''
-git init -q Child
+git init -q -b feature Child
 git -C Child remote add origin https://github.com/team/Child.git
 git -C Child -c user.name=Offline -c user.email=offline@example.invalid commit --allow-empty -qm fixture
+git -C Child update-ref refs/remotes/origin/feature HEAD
 git -C Child config 'url.ssh://git@child.example:2222/team/.insteadOf' 'https://github.com/team/'
 clone_url_for_path() { print 'https://github.com/team/Child.git'; }
 is_git_worktree() { return 0; }
@@ -247,9 +252,10 @@ git clone -q "$raw" "$CASE_ROOT/from-process"
         for source in ALL_SOURCES:
             with self.subTest(script=source):
                 output, disk = self.shell(source, r'''
-git init -q Child
+git init -q -b main Child
 git -C Child remote add origin https://github.com/team/Child.git
 git -C Child -c user.name=Offline -c user.email=offline@example.invalid commit --allow-empty -qm fixture
+git -C Child update-ref refs/remotes/origin/main HEAD
 git -C Child config 'url.https://user:secret@mirror.example/team/.insteadOf' 'https://github.com/team/'
 clone_url_for_path() { print 'https://github.com/team/Child.git'; }
 is_git_worktree() { return 0; }

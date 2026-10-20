@@ -4,13 +4,17 @@
 
 from __future__ import annotations
 
+import errno
 import os
 from pathlib import Path
+import pty
 import re
+import select
 import shlex
 import shutil
 import subprocess
 import tempfile
+import time
 import unittest
 
 from test_downloaders_latest import SOURCES
@@ -154,6 +158,160 @@ AUTO_PARENT_PUSH=0
             name: (gitdir / name).read_bytes() if (gitdir / name).exists() else None
             for name in ("HEAD", "FETCH_HEAD", "config", "index", "refs/heads/main", "refs/heads/feature")
         }
+
+    def forget_selected_worktree(self, fixture: dict[str, Path | str]) -> Path:
+        """Keep the disposable old cache aside so the next run really clones."""
+        parent = fixture["parent"]
+        child = parent / "Selected child"
+        cache = Path(self.git(child, "rev-parse", "--absolute-git-dir"))
+        self.git(parent, "submodule", "deinit", "-f", "--", "Selected child")
+        cache.rename(fixture["case"] / "saved-selected-cache")
+        return child
+
+    def readonly_shell(self, source: Path, fixture: dict[str, Path | str], repo: Path) -> tuple[int, str]:
+        """Give the real embedded entrypoint a terminal while keeping every Git operation local."""
+        engine = source.read_text(encoding="utf-8").split("<<'JOBS_READONLY_PULL_ENGINE'\n", 1)[1].split("\nJOBS_READONLY_PULL_ENGINE", 1)[0]
+        script = fixture["case"] / "readonly-engine.zsh"
+        script.write_text(engine, encoding="utf-8")
+        master, slave = pty.openpty()
+        process = subprocess.Popen(
+            ["/bin/zsh", str(script), "--terminal-run", str(repo)],
+            cwd=fixture["case"], env=self.env, stdin=slave, stdout=slave, stderr=slave,
+        )
+        os.close(slave)
+        output = bytearray()
+        deadline = time.monotonic() + 45
+        try:
+            os.write(master, b"\n")
+            while time.monotonic() < deadline:
+                readable, _, _ = select.select([master], [], [], 0.1)
+                if readable:
+                    try:
+                        chunk = os.read(master, 65536)
+                    except OSError as error:
+                        if error.errno == errno.EIO:
+                            break
+                        raise
+                    if not chunk:
+                        break
+                    output.extend(chunk)
+                if process.poll() is not None and not readable:
+                    break
+            else:
+                self.fail("readonly engine timed out: " + output.decode(errors="replace"))
+            process.wait(timeout=5)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=5)
+            os.close(master)
+        return process.returncode, output.decode(errors="replace")
+
+    def test_readonly_detached_entry_restores_branch_recurses_and_repeats(self) -> None:
+        for index, source in enumerate(SOURCES):
+            with self.subTest(script=source):
+                fixture = self.fixture(f"readonly-detached-{index}")
+                parent = fixture["parent"]
+                parent_before = self.snapshot(parent)
+                child = parent / "Selected child"
+                self.assertEqual("", self.git(child, "branch", "--show-current"))
+                for _ in range(2):
+                    code, output = self.readonly_shell(source, fixture, child)
+                    self.assertEqual(0, code, output)
+                    for repo, key, branch in (
+                        (child, "child", "main"),
+                        (child / "中 child", "middle", "feature"),
+                        (child / "中 child/叶 child", "leaf", "feature"),
+                    ):
+                        self.assertEqual(branch, self.git(repo, "branch", "--show-current"))
+                        self.assertEqual(fixture[f"{key}_latest"], self.git(repo, "rev-parse", "HEAD"))
+                        self.assertEqual(f"origin/{branch}", self.git(repo, "rev-parse", "--abbrev-ref", "@{upstream}"))
+                    self.assertEqual(parent_before, self.snapshot(parent))
+                    self.assertEqual(fixture["middle_old"], self.git(child, "rev-parse", ":中 child"))
+
+    def test_readonly_detached_entry_preserves_unique_commit(self) -> None:
+        for index, source in enumerate(SOURCES):
+            with self.subTest(script=source):
+                fixture = self.fixture(f"readonly-unique-{index}", initialized=True)
+                parent = fixture["parent"]
+                parent_before = self.snapshot(parent)
+                child = parent / "Selected child"
+                self.git(child, "commit", "--allow-empty", "-qm", "must preserve detached entry commit")
+                expected = self.git(child, "rev-parse", "HEAD")
+                code, output = self.readonly_shell(source, fixture, child)
+                self.assertNotEqual(0, code, output)
+                self.assertEqual(expected, self.git(child, "rev-parse", "HEAD"))
+                self.assertEqual("", self.git(child, "branch", "--show-current"))
+                self.assertEqual(parent_before, self.snapshot(parent))
+
+    def test_unconfigured_branches_follow_remote_trunk_even_when_main_exists(self) -> None:
+        for initialized in (False, True):
+            for index, source in enumerate(SOURCES):
+                with self.subTest(script=source, initialized=initialized):
+                    fixture = self.fixture(f"default-{initialized}-{index}", initialized=initialized)
+                    expected = {}
+                    for key, section in (("leaf", None), ("middle", "leaf-section"), ("child", "middle-section")):
+                        remote = fixture[key]
+                        self.git(remote, "checkout", "-qb", "trunk")
+                        if section:
+                            self.git(remote, "config", "-f", ".gitmodules", "--unset", f"submodule.{section}.branch")
+                            self.git(remote, "add", ".gitmodules")
+                        expected[key] = self.commit(remote, f"{key} default trunk latest")
+                    if not initialized:
+                        self.forget_selected_worktree(fixture)
+                    self.shell(source, fixture, "sync_selected_submodules_to_latest 'Selected child'\nsync_selected_submodules_to_latest 'Selected child'\n")
+                    child = fixture["parent"] / "Selected child"
+                    for key, repo in (("child", child), ("middle", child / "中 child"), ("leaf", child / "中 child/叶 child")):
+                        self.assertEqual("trunk", self.git(repo, "branch", "--show-current"))
+                        self.assertEqual(expected[key], self.git(repo, "rev-parse", "HEAD"))
+                        self.assertEqual("origin/trunk", self.git(repo, "rev-parse", "--abbrev-ref", "@{upstream}"))
+
+    def test_explicit_missing_branch_stops_before_clone_or_checkout(self) -> None:
+        for initialized in (False, True):
+            for index, source in enumerate(SOURCES):
+                with self.subTest(script=source, initialized=initialized):
+                    fixture = self.fixture(f"missing-{initialized}-{index}", initialized=initialized)
+                    parent = fixture["parent"]
+                    child = parent / "Selected child"
+                    before = (self.git(child, "rev-parse", "HEAD"), self.git(child, "branch", "--show-current"))
+                    self.git(parent, "config", "-f", ".gitmodules", "submodule.selected-section.branch", "does-not-exist")
+                    if not initialized:
+                        self.forget_selected_worktree(fixture)
+                    output = self.shell(source, fixture, "if sync_selected_submodules_to_latest 'Selected child'; then exit 96; fi\n")
+                    self.assertNotIn("Selected child 已浅同步", output)
+                    if initialized:
+                        self.assertEqual(before, (self.git(child, "rev-parse", "HEAD"), self.git(child, "branch", "--show-current")))
+                    else:
+                        self.assertFalse((child / ".git").exists())
+
+    def test_descendant_missing_branch_never_falls_back_to_remote_default(self) -> None:
+        for initialized in (False, True):
+            for index, source in enumerate(SOURCES):
+                with self.subTest(script=source, initialized=initialized):
+                    fixture = self.fixture(f"missing-descendant-{initialized}-{index}", initialized=initialized)
+                    self.git(fixture["child"], "config", "-f", ".gitmodules", "submodule.middle-section.branch", "does-not-exist")
+                    self.git(fixture["child"], "add", ".gitmodules")
+                    self.git(fixture["child"], "commit", "-qm", "invalid explicit descendant branch")
+                    middle = fixture["parent"] / "Selected child/中 child"
+                    before = (self.git(middle, "rev-parse", "HEAD"), self.git(middle, "branch", "--show-current")) if initialized else None
+                    output = self.shell(source, fixture, "if sync_selected_submodules_to_latest 'Selected child'; then exit 97; fi\n")
+                    self.assertIn("does-not-exist", output)
+                    if initialized:
+                        self.assertEqual(before, (self.git(middle, "rev-parse", "HEAD"), self.git(middle, "branch", "--show-current")))
+                    else:
+                        self.assertFalse((middle / ".git").exists())
+
+    def test_shallow_fetch_can_fast_forward_old_local_main(self) -> None:
+        for index, source in enumerate(SOURCES):
+            with self.subTest(script=source):
+                fixture = self.fixture(f"shallow-main-{index}")
+                child = fixture["parent"] / "Selected child"
+                self.git(child, "checkout", "-q", "main")
+                self.git(child, "fetch", "--depth=1", "origin", fixture["child_old"])
+                self.assertEqual("true", self.git(child, "rev-parse", "--is-shallow-repository"))
+                self.shell(source, fixture, "SUBMODULE_SHALLOW_CLONE=1\nsync_selected_submodules_to_latest 'Selected child'\n", recursive=0)
+                self.assertEqual("main", self.git(child, "branch", "--show-current"))
+                self.assertEqual(fixture["child_latest"], self.git(child, "rev-parse", "HEAD"))
 
     def test_recursive_latest_honors_explicit_and_inherited_branches_without_staging_descendants(self) -> None:
         self.assertTrue(SOURCES, "no retained standalone downloader was found")
