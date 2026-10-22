@@ -14,22 +14,23 @@
   - [【MacOS】🧾更新gitmodules.command](#jobs-toc-heading-5)
 - [二、目录结构](#repository-layout)
 - [三、其它脚本执行流程](#script-workflows)
-  - [【MacOS】⏬双击下载SourceTree效率脚本.command](#jobs-toc-heading-8)
-  - [【MacOS】♻️双击Git 提交回退.command](#jobs-toc-heading-9)
-  - [【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](#jobs-toc-heading-10)
-  - [【MacOS】♻️批量Git提交（不含推送）.command](#jobs-toc-heading-11)
-  - [【MacOS】♻️检测并转换为子Git.command](#jobs-toc-heading-12)
-  - [【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](#jobs-toc-heading-13)
-  - [【MacOS】⚙️双击生成Github远程仓库URL.command](#jobs-toc-heading-14)
-  - [【MacOS】⬆️Git添加子模块.command](#jobs-toc-heading-15)
-  - [【MacOS】🎬上传GitHub视频附件.command](#jobs-toc-heading-16)
-  - [【MacOS】🔍Git依据提交日志关键字查找.command](#jobs-toc-heading-17)
-  - [【MacOS】🔍Git寻找分支最近的一次原始切点.command](#jobs-toc-heading-18)
-  - [【MacOS】🚪双击打开Github.Flutter.command](#jobs-toc-heading-19)
-  - [【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command](#jobs-toc-heading-20)
-  - [【MacOS】🚪双击打开Github.JobsOCKit.command](#jobs-toc-heading-21)
-  - [【MacOS】🧮双击统计MD文件的有效行数.command](#jobs-toc-heading-22)
-  - [【MacOS】🧹清理Git子仓运行态记录.command](#jobs-toc-heading-23)
+  - [【MacOS】🌐双击配置Git动态代理.command](#jobs-toc-heading-8)
+  - [【MacOS】⏬双击下载SourceTree效率脚本.command](#jobs-toc-heading-9)
+  - [【MacOS】♻️双击Git 提交回退.command](#jobs-toc-heading-10)
+  - [【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](#jobs-toc-heading-11)
+  - [【MacOS】♻️批量Git提交（不含推送）.command](#jobs-toc-heading-12)
+  - [【MacOS】♻️检测并转换为子Git.command](#jobs-toc-heading-13)
+  - [【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](#jobs-toc-heading-14)
+  - [【MacOS】⚙️双击生成Github远程仓库URL.command](#jobs-toc-heading-15)
+  - [【MacOS】⬆️Git添加子模块.command](#jobs-toc-heading-16)
+  - [【MacOS】🎬上传GitHub视频附件.command](#jobs-toc-heading-17)
+  - [【MacOS】🔍Git依据提交日志关键字查找.command](#jobs-toc-heading-18)
+  - [【MacOS】🔍Git寻找分支最近的一次原始切点.command](#jobs-toc-heading-19)
+  - [【MacOS】🚪双击打开Github.Flutter.command](#jobs-toc-heading-20)
+  - [【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command](#jobs-toc-heading-21)
+  - [【MacOS】🚪双击打开Github.JobsOCKit.command](#jobs-toc-heading-22)
+  - [【MacOS】🧮双击统计MD文件的有效行数.command](#jobs-toc-heading-23)
+  - [【MacOS】🧹清理Git子仓运行态记录.command](#jobs-toc-heading-24)
 
 </details>
 <!-- jobs-toc:end -->
@@ -39,6 +40,8 @@
 ## <span id="jobs-toc-heading-1" data-jobs-toc="v2">🔥 <font id=前言>前言</font></span><!-- jobs-toc:heading-end -->
 
 本仓收纳 [**Git**](https://git-scm.com/) 操作脚本。三个子模块入口分别负责下载更新、按磁盘修复关联、增量补齐关联；运行前先按下面的流程选择。
+
+本机 Git 网络自动选路使用[双击配置入口](./【MacOS】🌐双击配置Git动态代理.command/【MacOS】🌐双击配置Git动态代理.command)：双击同名主脚本，阅读自述后回车，即可安装终端与 [**Sourcetree**](https://www.sourcetreeapp.com/) 共用的用户级配置。系统代理可用时优先，代理关闭或不可用再尝试直连；无需每次手写代理参数。完整检查、备份与恢复说明见[入口 README](./【MacOS】🌐双击配置Git动态代理.command/README.md)。
 
 本仓由上层 `JobsGenesis` 的 `.gitmodules` 登记：
 
@@ -153,6 +156,7 @@ JobsCommand@Gits/
 ├── 【MacOS】⚙️双击生成Github远程仓库URL.command/  # 1 个入口
 ├── 【MacOS】⬆️Git添加子模块.command/  # 1 个入口
 ├── 【MacOS】🎬上传GitHub视频附件.command/  # 1 个入口
+├── 【MacOS】🌐双击配置Git动态代理.command/  # 1 个配置入口
 ├── 【MacOS】🔍Git依据提交日志关键字查找.command/  # 1 个入口
 ├── 【MacOS】🔍Git寻找分支最近的一次原始切点.command/  # 1 个入口
 ├── 【MacOS】🚪双击打开Github.Flutter.command/  # 1 个入口
@@ -166,9 +170,20 @@ JobsCommand@Gits/
 
 ## 三、<span id="script-workflows">其它脚本执行流程</span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-本仓共有 19 个用户入口。这里只列本仓维护的主入口；独立子 Git、测试、函数库及打包资源模板不作为用户运行入口。步骤来自静态源码与配套说明，未执行安装、清理、构建或 Git 写操作。
+本仓共有 20 个用户入口。统计时间：2026-10-22；按当前第一层脚本包中的同名主脚本计数，独立子 Git、测试、函数库及内嵌运行模板不作为用户运行入口。这里只列本仓维护的主入口，以下步骤以静态源码和配套说明为准；具体脚本的验证范围另见其 README。
 
-### <span id="jobs-toc-heading-8" data-jobs-toc="v2">[【MacOS】⏬双击下载SourceTree效率脚本.command](./%E3%80%90MacOS%E3%80%91%E2%8F%AC%E5%8F%8C%E5%87%BB%E4%B8%8B%E8%BD%BDSourceTree%E6%95%88%E7%8E%87%E8%84%9A%E6%9C%AC.command/%E3%80%90MacOS%E3%80%91%E2%8F%AC%E5%8F%8C%E5%87%BB%E4%B8%8B%E8%BD%BDSourceTree%E6%95%88%E7%8E%87%E8%84%9A%E6%9C%AC.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-8" data-jobs-toc="v2">[【MacOS】🌐双击配置Git动态代理.command](./【MacOS】🌐双击配置Git动态代理.command/【MacOS】🌐双击配置Git动态代理.command)</span><!-- jobs-toc:heading-end -->
+
+> **目的：** 一次安装终端与 Sourcetree 共用的动态网络入口，自动使用当前可达的系统代理或直连链路。
+
+- 双击主脚本，先展示作用范围、流量走向、日志和恢复方式，回车确认后配置；`Ctrl+C` 取消。
+- 检查 macOS 原生 Git 和必要系统工具，从脚本内嵌内容部署独立运行入口，不依赖已有 JobsMacEnv 或下载仓库的位置。
+- 备份本次精确修改项，在当前用户 Shell 配置末尾挂载入口，并配置已安装的 Sourcetree；保留原有正文与其它偏好，不修改系统代理或固定 `http.proxy`。
+  - 已运行的 Sourcetree 不强制结束；保存任务并重新启动后加载新的入口。
+- 后续普通 HTTP / HTTPS Git 操作先验证当前系统代理，代理关闭或不可用时再尝试直连；不绑定 VPN 品牌或固定端口。
+- 重复安装保持幂等；可只读检查或精确恢复本次配置，后续用户改动发生冲突时保留并停止，不清空整份配置。
+
+### <span id="jobs-toc-heading-9" data-jobs-toc="v2">[【MacOS】⏬双击下载SourceTree效率脚本.command](./%E3%80%90MacOS%E3%80%91%E2%8F%AC%E5%8F%8C%E5%87%BB%E4%B8%8B%E8%BD%BDSourceTree%E6%95%88%E7%8E%87%E8%84%9A%E6%9C%AC.command/%E3%80%90MacOS%E3%80%91%E2%8F%AC%E5%8F%8C%E5%87%BB%E4%B8%8B%E8%BD%BDSourceTree%E6%95%88%E7%8E%87%E8%84%9A%E6%9C%AC.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 取得可本地运行的 [**Sourcetree**](https://www.sourcetreeapp.com/) 脚本库。
 
@@ -177,7 +192,7 @@ JobsCommand@Gits/
 - 给下载入口补执行权限并打开输出目录。
 
 
-### <span id="jobs-toc-heading-9" data-jobs-toc="v2">[【MacOS】♻️双击Git 提交回退.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BBGit%20%E6%8F%90%E4%BA%A4%E5%9B%9E%E9%80%80.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BBGit%20%E6%8F%90%E4%BA%A4%E5%9B%9E%E9%80%80.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-10" data-jobs-toc="v2">[【MacOS】♻️双击Git 提交回退.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BBGit%20%E6%8F%90%E4%BA%A4%E5%9B%9E%E9%80%80.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BBGit%20%E6%8F%90%E4%BA%A4%E5%9B%9E%E9%80%80.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 为选中的 Git 仓库选择历史目标并执行回退。
 
@@ -187,7 +202,7 @@ JobsCommand@Gits/
   - 如果选择 hard，工作区修改可能丢失；先核对备份和确认提示。
 
 
-### <span id="jobs-toc-heading-10" data-jobs-toc="v2">[【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BB%E6%81%A2%E5%A4%8D%E8%AF%AF%E5%88%A0%E6%9C%AC%E5%9C%B0Git%E5%B7%B2%E5%82%A8%E8%97%8F%E7%9A%84%E8%B5%84%E6%96%99.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BB%E6%81%A2%E5%A4%8D%E8%AF%AF%E5%88%A0%E6%9C%AC%E5%9C%B0Git%E5%B7%B2%E5%82%A8%E8%97%8F%E7%9A%84%E8%B5%84%E6%96%99.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-11" data-jobs-toc="v2">[【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BB%E6%81%A2%E5%A4%8D%E8%AF%AF%E5%88%A0%E6%9C%AC%E5%9C%B0Git%E5%B7%B2%E5%82%A8%E8%97%8F%E7%9A%84%E8%B5%84%E6%96%99.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BB%E6%81%A2%E5%A4%8D%E8%AF%AF%E5%88%A0%E6%9C%AC%E5%9C%B0Git%E5%B7%B2%E5%82%A8%E8%97%8F%E7%9A%84%E8%B5%84%E6%96%99.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 从本地 Git 悬空对象中寻找并恢复误删资料。
 
@@ -196,7 +211,7 @@ JobsCommand@Gits/
 - 按所选方式恢复到工作区或分支，并输出后续审查提示。
 
 
-### <span id="jobs-toc-heading-11" data-jobs-toc="v2">[【MacOS】♻️批量Git提交（不含推送）.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%89%B9%E9%87%8FGit%E6%8F%90%E4%BA%A4%EF%BC%88%E4%B8%8D%E5%90%AB%E6%8E%A8%E9%80%81%EF%BC%89.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%89%B9%E9%87%8FGit%E6%8F%90%E4%BA%A4%EF%BC%88%E4%B8%8D%E5%90%AB%E6%8E%A8%E9%80%81%EF%BC%89.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-12" data-jobs-toc="v2">[【MacOS】♻️批量Git提交（不含推送）.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%89%B9%E9%87%8FGit%E6%8F%90%E4%BA%A4%EF%BC%88%E4%B8%8D%E5%90%AB%E6%8E%A8%E9%80%81%EF%BC%89.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%89%B9%E9%87%8FGit%E6%8F%90%E4%BA%A4%EF%BC%88%E4%B8%8D%E5%90%AB%E6%8E%A8%E9%80%81%EF%BC%89.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 为所选范围的本地仓库批量创建提交。
 
@@ -205,7 +220,7 @@ JobsCommand@Gits/
 - 为有变更的仓库创建提交并汇总结果，不执行推送。
 
 
-### <span id="jobs-toc-heading-12" data-jobs-toc="v2">[【MacOS】♻️检测并转换为子Git.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%A3%80%E6%B5%8B%E5%B9%B6%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%AD%90Git.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%A3%80%E6%B5%8B%E5%B9%B6%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%AD%90Git.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-13" data-jobs-toc="v2">[【MacOS】♻️检测并转换为子Git.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%A3%80%E6%B5%8B%E5%B9%B6%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%AD%90Git.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%A3%80%E6%B5%8B%E5%B9%B6%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%AD%90Git.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 检查本地嵌套仓库并按选择转换为父仓子模块。
 
@@ -214,7 +229,7 @@ JobsCommand@Gits/
 - 按选择备份、转换和登记，完成后检查父仓差异；不应把此操作当纯扫描。
 
 
-### <span id="jobs-toc-heading-13" data-jobs-toc="v2">[【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](./%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E4%B8%BA%E7%A7%81%E4%BA%BA%E8%B4%A6%E6%88%B7%E7%94%9F%E6%88%90%20SSH%20%E5%AF%86%E9%92%A5%EF%BC%88%E5%8A%A0%E5%AF%86%E6%89%8B%E6%AE%B5%EF%BC%9ARSA%204096%20%2B%20ED25519%20%E4%BA%8C%E9%80%89%E4%B8%80%EF%BC%89.command/%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E4%B8%BA%E7%A7%81%E4%BA%BA%E8%B4%A6%E6%88%B7%E7%94%9F%E6%88%90%20SSH%20%E5%AF%86%E9%92%A5%EF%BC%88%E5%8A%A0%E5%AF%86%E6%89%8B%E6%AE%B5%EF%BC%9ARSA%204096%20%2B%20ED25519%20%E4%BA%8C%E9%80%89%E4%B8%80%EF%BC%89.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-14" data-jobs-toc="v2">[【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](./%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E4%B8%BA%E7%A7%81%E4%BA%BA%E8%B4%A6%E6%88%B7%E7%94%9F%E6%88%90%20SSH%20%E5%AF%86%E9%92%A5%EF%BC%88%E5%8A%A0%E5%AF%86%E6%89%8B%E6%AE%B5%EF%BC%9ARSA%204096%20%2B%20ED25519%20%E4%BA%8C%E9%80%89%E4%B8%80%EF%BC%89.command/%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E4%B8%BA%E7%A7%81%E4%BA%BA%E8%B4%A6%E6%88%B7%E7%94%9F%E6%88%90%20SSH%20%E5%AF%86%E9%92%A5%EF%BC%88%E5%8A%A0%E5%AF%86%E6%89%8B%E6%AE%B5%EF%BC%9ARSA%204096%20%2B%20ED25519%20%E4%BA%8C%E9%80%89%E4%B8%80%EF%BC%89.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 为个人账号生成并配置 [**SSH**](https://www.openssh.com/) 登录密钥。
 
@@ -223,7 +238,7 @@ JobsCommand@Gits/
 - 打开公钥设置页面，并按选择验证连接；私钥留在本机。
 
 
-### <span id="jobs-toc-heading-14" data-jobs-toc="v2">[【MacOS】⚙️双击生成Github远程仓库URL.command](./%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E7%94%9F%E6%88%90Github%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93URL.command/%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E7%94%9F%E6%88%90Github%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93URL.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-15" data-jobs-toc="v2">[【MacOS】⚙️双击生成Github远程仓库URL.command](./%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E7%94%9F%E6%88%90Github%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93URL.command/%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E7%94%9F%E6%88%90Github%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93URL.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 调用 [**GitHub**](https://github.com) API 创建仓库并取得网页地址。
 
@@ -232,7 +247,7 @@ JobsCommand@Gits/
 - 提取返回 URL 并打开浏览器；此操作会创建真实远端仓库。
 
 
-### <span id="jobs-toc-heading-15" data-jobs-toc="v2">[【MacOS】⬆️Git添加子模块.command](./%E3%80%90MacOS%E3%80%91%E2%AC%86%EF%B8%8FGit%E6%B7%BB%E5%8A%A0%E5%AD%90%E6%A8%A1%E5%9D%97.command/%E3%80%90MacOS%E3%80%91%E2%AC%86%EF%B8%8FGit%E6%B7%BB%E5%8A%A0%E5%AD%90%E6%A8%A1%E5%9D%97.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-16" data-jobs-toc="v2">[【MacOS】⬆️Git添加子模块.command](./%E3%80%90MacOS%E3%80%91%E2%AC%86%EF%B8%8FGit%E6%B7%BB%E5%8A%A0%E5%AD%90%E6%A8%A1%E5%9D%97.command/%E3%80%90MacOS%E3%80%91%E2%AC%86%EF%B8%8FGit%E6%B7%BB%E5%8A%A0%E5%AD%90%E6%A8%A1%E5%9D%97.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 按内置清单重新建立子模块并记录父仓提交。
 
@@ -241,7 +256,7 @@ JobsCommand@Gits/
 - 更新子模块到配置分支并记录指针，处理父仓提交与远端配置；会删除重建关联。
 
 
-### <span id="jobs-toc-heading-16" data-jobs-toc="v2">[【MacOS】🎬上传GitHub视频附件.command](./%E3%80%90MacOS%E3%80%91%F0%9F%8E%AC%E4%B8%8A%E4%BC%A0GitHub%E8%A7%86%E9%A2%91%E9%99%84%E4%BB%B6.command/%E3%80%90MacOS%E3%80%91%F0%9F%8E%AC%E4%B8%8A%E4%BC%A0GitHub%E8%A7%86%E9%A2%91%E9%99%84%E4%BB%B6.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-17" data-jobs-toc="v2">[【MacOS】🎬上传GitHub视频附件.command](./%E3%80%90MacOS%E3%80%91%F0%9F%8E%AC%E4%B8%8A%E4%BC%A0GitHub%E8%A7%86%E9%A2%91%E9%99%84%E4%BB%B6.command/%E3%80%90MacOS%E3%80%91%F0%9F%8E%AC%E4%B8%8A%E4%BC%A0GitHub%E8%A7%86%E9%A2%91%E9%99%84%E4%BB%B6.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 上传本地视频为 GitHub 附件并取得可粘贴 URL。
 
@@ -250,7 +265,7 @@ JobsCommand@Gits/
 - 上传附件，输出并复制 URL；重复执行会产生新附件，不自动改 README。
 
 
-### <span id="jobs-toc-heading-17" data-jobs-toc="v2">[【MacOS】🔍Git依据提交日志关键字查找.command](./%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E4%BE%9D%E6%8D%AE%E6%8F%90%E4%BA%A4%E6%97%A5%E5%BF%97%E5%85%B3%E9%94%AE%E5%AD%97%E6%9F%A5%E6%89%BE.command/%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E4%BE%9D%E6%8D%AE%E6%8F%90%E4%BA%A4%E6%97%A5%E5%BF%97%E5%85%B3%E9%94%AE%E5%AD%97%E6%9F%A5%E6%89%BE.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-18" data-jobs-toc="v2">[【MacOS】🔍Git依据提交日志关键字查找.command](./%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E4%BE%9D%E6%8D%AE%E6%8F%90%E4%BA%A4%E6%97%A5%E5%BF%97%E5%85%B3%E9%94%AE%E5%AD%97%E6%9F%A5%E6%89%BE.command/%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E4%BE%9D%E6%8D%AE%E6%8F%90%E4%BA%A4%E6%97%A5%E5%BF%97%E5%85%B3%E9%94%AE%E5%AD%97%E6%9F%A5%E6%89%BE.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 按提交说明关键词定位历史记录。
 
@@ -259,7 +274,7 @@ JobsCommand@Gits/
 - 显示提交号、作者、时间与标题，按提示继续查询。
 
 
-### <span id="jobs-toc-heading-18" data-jobs-toc="v2">[【MacOS】🔍Git寻找分支最近的一次原始切点.command](./%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E5%AF%BB%E6%89%BE%E5%88%86%E6%94%AF%E6%9C%80%E8%BF%91%E7%9A%84%E4%B8%80%E6%AC%A1%E5%8E%9F%E5%A7%8B%E5%88%87%E7%82%B9.command/%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E5%AF%BB%E6%89%BE%E5%88%86%E6%94%AF%E6%9C%80%E8%BF%91%E7%9A%84%E4%B8%80%E6%AC%A1%E5%8E%9F%E5%A7%8B%E5%88%87%E7%82%B9.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-19" data-jobs-toc="v2">[【MacOS】🔍Git寻找分支最近的一次原始切点.command](./%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E5%AF%BB%E6%89%BE%E5%88%86%E6%94%AF%E6%9C%80%E8%BF%91%E7%9A%84%E4%B8%80%E6%AC%A1%E5%8E%9F%E5%A7%8B%E5%88%87%E7%82%B9.command/%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E5%AF%BB%E6%89%BE%E5%88%86%E6%94%AF%E6%9C%80%E8%BF%91%E7%9A%84%E4%B8%80%E6%AC%A1%E5%8E%9F%E5%A7%8B%E5%88%87%E7%82%B9.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 找出两条分支最近的共同历史起点。
 
@@ -268,7 +283,7 @@ JobsCommand@Gits/
 - 输出提交信息，并按提示继续下一轮比较。
 
 
-### <span id="jobs-toc-heading-19" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.Flutter.command](./%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.Flutter.command/%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.Flutter.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-20" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.Flutter.command](./%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.Flutter.command/%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.Flutter.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 打开脚本预设的 GitHub 项目主页。
 
@@ -277,7 +292,7 @@ JobsCommand@Gits/
 - 使用默认浏览器打开该主页。
 
 
-### <span id="jobs-toc-heading-20" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command](./%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCBaseConfigDemo.command/%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCBaseConfigDemo.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-21" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command](./%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCBaseConfigDemo.command/%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCBaseConfigDemo.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 打开脚本预设的 GitHub 项目主页。
 
@@ -286,7 +301,7 @@ JobsCommand@Gits/
 - 使用默认浏览器打开该主页。
 
 
-### <span id="jobs-toc-heading-21" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.JobsOCKit.command](./%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCKit.command/%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCKit.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-22" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.JobsOCKit.command](./%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCKit.command/%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCKit.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 打开脚本预设的 GitHub 项目主页。
 
@@ -295,7 +310,7 @@ JobsCommand@Gits/
 - 使用默认浏览器打开该主页。
 
 
-### <span id="jobs-toc-heading-22" data-jobs-toc="v2">[【MacOS】🧮双击统计MD文件的有效行数.command](./%E3%80%90MacOS%E3%80%91%F0%9F%A7%AE%E5%8F%8C%E5%87%BB%E7%BB%9F%E8%AE%A1MD%E6%96%87%E4%BB%B6%E7%9A%84%E6%9C%89%E6%95%88%E8%A1%8C%E6%95%B0.command/%E3%80%90MacOS%E3%80%91%F0%9F%A7%AE%E5%8F%8C%E5%87%BB%E7%BB%9F%E8%AE%A1MD%E6%96%87%E4%BB%B6%E7%9A%84%E6%9C%89%E6%95%88%E8%A1%8C%E6%95%B0.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-23" data-jobs-toc="v2">[【MacOS】🧮双击统计MD文件的有效行数.command](./%E3%80%90MacOS%E3%80%91%F0%9F%A7%AE%E5%8F%8C%E5%87%BB%E7%BB%9F%E8%AE%A1MD%E6%96%87%E4%BB%B6%E7%9A%84%E6%9C%89%E6%95%88%E8%A1%8C%E6%95%B0.command/%E3%80%90MacOS%E3%80%91%F0%9F%A7%AE%E5%8F%8C%E5%87%BB%E7%BB%9F%E8%AE%A1MD%E6%96%87%E4%BB%B6%E7%9A%84%E6%9C%89%E6%95%88%E8%A1%8C%E6%95%B0.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 安装统计 Markdown 有效行数的提交钩子。
 
@@ -304,7 +319,7 @@ JobsCommand@Gits/
 - 给钩子补执行权限并显示安装结果；后续提交会触发该钩子。
 
 
-### <span id="jobs-toc-heading-23" data-jobs-toc="v2">[【MacOS】🧹清理Git子仓运行态记录.command](./%E3%80%90MacOS%E3%80%91%F0%9F%A7%B9%E6%B8%85%E7%90%86Git%E5%AD%90%E4%BB%93%E8%BF%90%E8%A1%8C%E6%80%81%E8%AE%B0%E5%BD%95.command/%E3%80%90MacOS%E3%80%91%F0%9F%A7%B9%E6%B8%85%E7%90%86Git%E5%AD%90%E4%BB%93%E8%BF%90%E8%A1%8C%E6%80%81%E8%AE%B0%E5%BD%95.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-24" data-jobs-toc="v2">[【MacOS】🧹清理Git子仓运行态记录.command](./%E3%80%90MacOS%E3%80%91%F0%9F%A7%B9%E6%B8%85%E7%90%86Git%E5%AD%90%E4%BB%93%E8%BF%90%E8%A1%8C%E6%80%81%E8%AE%B0%E5%BD%95.command/%E3%80%90MacOS%E3%80%91%F0%9F%A7%B9%E6%B8%85%E7%90%86Git%E5%AD%90%E4%BB%93%E8%BF%90%E8%A1%8C%E6%80%81%E8%AE%B0%E5%BD%95.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 让运行态记录退出 Git 跟踪，同时保留本机文件。
 
