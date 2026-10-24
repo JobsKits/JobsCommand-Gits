@@ -1,0 +1,122 @@
+[
+  {
+    "mac": "【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command",
+    "windows": "【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）",
+    "action": "download",
+    "description": "按登记逐层拉取目标分支最新，恢复本地跟踪分支；默认不提交、不推送。"
+  },
+  {
+    "mac": "【MacOS】⏬双击下载SourceTree效率脚本.command",
+    "windows": "【WindowsOS】⏬双击下载SourceTree效率脚本",
+    "action": "sourcetree",
+    "description": "下载或安全快进 SourceTree 脚本库；保留非空目标与已有修改。"
+  },
+  {
+    "mac": "【MacOS】♻️双击Git 提交回退.command",
+    "windows": "【WindowsOS】♻️双击Git 提交回退",
+    "action": "reset",
+    "description": "选择上一提交、tag 或 reflog，soft/hard 回退；先创建原 HEAD 恢复分支。"
+  },
+  {
+    "mac": "【MacOS】♻️双击恢复误删本地Git已储藏的资料.command",
+    "windows": "【WindowsOS】♻️双击恢复误删本地Git已储藏的资料",
+    "action": "recover",
+    "description": "检查悬空 commit/tree/blob，按选择恢复为独立分支或二进制文件。"
+  },
+  {
+    "mac": "【MacOS】♻️批量Git提交（不含推送）.command",
+    "windows": "【WindowsOS】♻️批量Git提交（不含推送）",
+    "action": "batch",
+    "description": "扫描指定目录内 Git 工作树，后代先于父仓逐仓提交；不推送。"
+  },
+  {
+    "mac": "【MacOS】♻️检测并转换为子Git.command",
+    "windows": "【WindowsOS】♻️检测并转换为子Git",
+    "action": "convert",
+    "description": "扫描独立嵌套 Git，逐仓预检、备份、登记并使用 Git 官方命令归集元数据。"
+  },
+  {
+    "mac": "【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command",
+    "windows": "【WindowsOS】⚙️双击为私人账户生成 SSH 密钥（加密手段_RSA 4096 + ED25519 二选一）",
+    "action": "ssh",
+    "description": "生成个人 ED25519/RSA4096 密钥、增补 github-personal Host，复制公钥并打开设置页。"
+  },
+  {
+    "mac": "【MacOS】⚙️双击生成Github远程仓库URL.command",
+    "windows": "【WindowsOS】⚙️双击生成Github远程仓库URL",
+    "action": "create",
+    "description": "通过已登录 GitHub CLI 创建 private/public 远端仓库并打开返回 URL。"
+  },
+  {
+    "mac": "【MacOS】⬆️Git添加子模块.command",
+    "windows": "【WindowsOS】⬆️Git添加子模块",
+    "action": "rebuild",
+    "description": "备份旧子模块工作树和关联后，按五仓清单重新建立子模块；不自动提交。"
+  },
+  {
+    "mac": "【MacOS】🌐双击配置Git动态代理.command",
+    "windows": "【WindowsOS】🌐双击配置Git动态代理",
+    "action": "proxy",
+    "description": "配置当前用户 Git 动态入口；系统代理可达优先、不可达再直连，支持检查与精确恢复。"
+  },
+  {
+    "mac": "【MacOS】🎬上传GitHub视频附件.command",
+    "windows": "【WindowsOS】🎬上传GitHub视频附件",
+    "action": "video",
+    "description": "上传 MP4/MOV/WEBM 到 GitHub 附件并复制 URL；不修改 README、不提交。"
+  },
+  {
+    "mac": "【MacOS】🔍Git依据提交日志关键字查找.command",
+    "windows": "【WindowsOS】🔍Git依据提交日志关键字查找",
+    "action": "search",
+    "description": "按字面关键词搜索全部引用的提交说明，选择后展示提交详情。"
+  },
+  {
+    "mac": "【MacOS】🔍Git寻找分支最近的一次原始切点.command",
+    "windows": "【WindowsOS】🔍Git寻找分支最近的一次原始切点",
+    "action": "forkpoint",
+    "description": "选择两个分支，通过 fork-point 或 merge-base 计算最近共同祖先。"
+  },
+  {
+    "mac": "【MacOS】🚪双击打开Github.Flutter.command",
+    "windows": "【WindowsOS】🚪双击打开Github.Flutter",
+    "action": "open-flutter",
+    "description": "使用 Windows 默认浏览器打开 Flutter 官方源码仓库。"
+  },
+  {
+    "mac": "【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command",
+    "windows": "【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo",
+    "action": "open-oc",
+    "description": "使用 Windows 默认浏览器打开 JobsOCBaseConfigDemo 仓库。"
+  },
+  {
+    "mac": "【MacOS】🚪双击打开Github.JobsOCKit.command",
+    "windows": "【WindowsOS】🚪双击打开Github.JobsOCKit",
+    "action": "open-ockit",
+    "description": "使用 Windows 默认浏览器打开 JobsOCKit 仓库。"
+  },
+  {
+    "mac": "【MacOS】🧭更新引用Git父仓=＞子仓.command",
+    "windows": "【WindowsOS】🧭更新引用Git父仓到子仓",
+    "action": "align",
+    "description": "依据磁盘现存子仓对齐登记和 gitlink，备份配置与索引，保留源码与远端。"
+  },
+  {
+    "mac": "【MacOS】🧮双击统计MD文件的有效行数.command",
+    "windows": "【WindowsOS】🧮双击统计MD文件的有效行数",
+    "action": "hook",
+    "description": "安装 pre-commit 有效行数钩子；保留已有钩子，部分暂存文档停止。"
+  },
+  {
+    "mac": "【MacOS】🧹清理Git子仓运行态记录.command",
+    "windows": "【WindowsOS】🧹清理Git子仓运行态记录",
+    "action": "runtime",
+    "description": "为登记子仓补运行态忽略规则，并移除运行态索引记录，保留真实文件。"
+  },
+  {
+    "mac": "【MacOS】🧾更新gitmodules.command",
+    "windows": "【WindowsOS】🧾更新gitmodules",
+    "action": "associate",
+    "description": "增量登记现有直属独立子仓，保留已有 URL/branch/扩展字段和 gitlink。"
+  }
+]

@@ -10,7 +10,7 @@
 - [🔥 前言](#jobs-toc-heading-1)
 - [一、Git 子模块脚本](#git-submodule-scripts)
   - [【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command](#jobs-toc-heading-3)
-  - [【MacOS】🧭更新引用Git父仓=\>子仓.command](#jobs-toc-heading-4)
+  - [【MacOS】🧭更新引用Git父仓=＞子仓.command](#jobs-toc-heading-4)
   - [【MacOS】🧾更新gitmodules.command](#jobs-toc-heading-5)
 - [二、目录结构](#repository-layout)
 - [三、其它脚本执行流程](#script-workflows)
@@ -31,6 +31,7 @@
   - [【MacOS】🚪双击打开Github.JobsOCKit.command](#jobs-toc-heading-22)
   - [【MacOS】🧮双击统计MD文件的有效行数.command](#jobs-toc-heading-23)
   - [【MacOS】🧹清理Git子仓运行态记录.command](#jobs-toc-heading-24)
+- [四、MacOS / WindowsOS 功能对应](#dual-platform)
 
 </details>
 <!-- jobs-toc:end -->
@@ -41,7 +42,9 @@
 
 本仓收纳 [**Git**](https://git-scm.com/) 操作脚本。三个子模块入口分别负责下载更新、按磁盘修复关联、增量补齐关联；运行前先按下面的流程选择。
 
-本机 Git 网络自动选路使用[双击配置入口](./【MacOS】🌐双击配置Git动态代理.command/【MacOS】🌐双击配置Git动态代理.command)：双击同名主脚本，阅读自述后回车，即可安装终端与 [**Sourcetree**](https://www.sourcetreeapp.com/) 共用的用户级配置。系统代理可用时优先，代理关闭或不可用再尝试直连；无需每次手写代理参数。完整检查、备份与恢复说明见[入口 README](./【MacOS】🌐双击配置Git动态代理.command/README.md)。
+两个平台分别进入 [`./MacOS/`](./MacOS/README.md) 和 [`./WindowsOS/`](./WindowsOS/README.md)。以下既有 zsh 流程和环境变量说明适用于 MacOS；Windows 使用同功能的 CMD / PowerShell 入口，参数及平台差异见[双端对应](#dual-platform)。
+
+本机 Git 网络自动选路使用[双击配置入口](./MacOS/【MacOS】🌐双击配置Git动态代理.command/【MacOS】🌐双击配置Git动态代理.command)：双击同名主脚本，阅读自述后回车，即可安装终端与 [**Sourcetree**](https://www.sourcetreeapp.com/) 共用的用户级配置。系统代理可用时优先，代理关闭或不可用再尝试直连；无需每次手写代理参数。完整检查、备份与恢复说明见[入口 README](./MacOS/【MacOS】🌐双击配置Git动态代理.command/README.md)。
 
 本仓由上层 `JobsGenesis` 的 `.gitmodules` 登记：
 
@@ -80,10 +83,20 @@
 
 维护模式补齐或新增登记时，不自动写入 `branch = main`；已有 `branch` 与缺省状态均保留。显式 `branch` 严格指定目标分支，`.` 继承直接父仓分支；未配置时跟随子仓远端默认分支。目标不存在、直接父仓分支无法确定或远端默认分支无法确定时停止。
 
+<strong id="capability-map">按目标找入口</strong>
+
+| 目标 | 功能范围与入口 |
+| --- | --- |
+| 下载、关联与维护子模块 | 默认只拉取 / 显式维护、修复父子关联、增补 gitmodules、全量重建、运行态记录清理；各自确认与提交策略不同。 |
+| 保存与找回本地资料 | 批量提交（不推送）、soft / hard / tag / reflog 回退、dangling 对象恢复；macOS 恢复包含自动合并，先阅读包内风险。 |
+| 网络与账户 | Git 动态代理安装 / 检查 / 精确恢复、SSH 密钥、GitHub 仓库创建及视频附件上传。 |
+| 历史分析与快捷打开 | 描述关键词 / 分支来源推断、reflog / 拓扑切点分析、三个固定 GitHub 页面。 |
+| 文档自动化 | 安装 Markdown 行数 pre-commit 钩子；有效行数定义与自动暂存边界见对应入口。 |
+| 平台入口 | [macOS 20 个脚本包](./MacOS/README.md) / [Windows 20 组入口](./WindowsOS/README.md)。同名功能的菜单与保护条件按各平台源码分别说明。 |
+
 ## 一、<span id="git-submodule-scripts">Git 子模块脚本</span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-### <span id="jobs-toc-heading-3" data-jobs-toc="v2">[【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command](./【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command/【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command)</span><!-- jobs-toc:heading-end -->
-
+### <span id="jobs-toc-heading-3" data-jobs-toc="v2">[【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command](./MacOS/【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command/【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 默认递归拉取已登记子模块目标分支的最新提交，保持本地跟踪分支；显式维护模式保留清单与登记能力。
 
@@ -113,7 +126,7 @@
 * 默认自动提交入口父仓的关联变化，不自动推送。
   * 设置 `AUTO_PARENT_COMMIT=0`：跳过提交；`AUTO_PARENT_PUSH=1`：启用父仓推送。
 
-### <span id="jobs-toc-heading-4" data-jobs-toc="v2">[【MacOS】🧭更新引用Git父仓=>子仓.command](./【MacOS】🧭更新引用Git父仓=%3E子仓.command/【MacOS】🧭更新引用Git父仓=%3E子仓.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-4" data-jobs-toc="v2">[【MacOS】🧭更新引用Git父仓=＞子仓.command](<./MacOS/【MacOS】🧭更新引用Git父仓=＞子仓.command/【MacOS】🧭更新引用Git父仓=＞子仓.command>)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 修复目录改名、旧路径残留或元数据指向错误，让父仓关联符合当前磁盘布局。
 
@@ -126,7 +139,7 @@
 * 修复可证明失效的工作树指向，暂存各子仓当前提交号，用官方命令归集元数据并补齐父仓本地登记。
 * 核对磁盘目录、清单和父仓子模块指针是否一致，输出状态；不拉取代码、不提交、不推送。
 
-### <span id="jobs-toc-heading-5" data-jobs-toc="v2">[【MacOS】🧾更新gitmodules.command](./【MacOS】🧾更新gitmodules.command/【MacOS】🧾更新gitmodules.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-5" data-jobs-toc="v2">[【MacOS】🧾更新gitmodules.command](./MacOS/【MacOS】🧾更新gitmodules.command/【MacOS】🧾更新gitmodules.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 将新放入的直属子仓完整纳入父仓子模块管理，保留已有登记与指针。
 
@@ -146,33 +159,21 @@
 ```text
 JobsCommand@Gits/
 ├── README.md
-├── 【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command/  # 1 个入口
-├── 【MacOS】⏬双击下载SourceTree效率脚本.command/  # 1 个入口
-├── 【MacOS】♻️双击Git 提交回退.command/  # 1 个入口
-├── 【MacOS】♻️双击恢复误删本地Git已储藏的资料.command/  # 1 个入口
-├── 【MacOS】♻️批量Git提交（不含推送）.command/  # 1 个入口
-├── 【MacOS】♻️检测并转换为子Git.command/  # 1 个入口
-├── 【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command/  # 1 个入口
-├── 【MacOS】⚙️双击生成Github远程仓库URL.command/  # 1 个入口
-├── 【MacOS】⬆️Git添加子模块.command/  # 1 个入口
-├── 【MacOS】🎬上传GitHub视频附件.command/  # 1 个入口
-├── 【MacOS】🌐双击配置Git动态代理.command/  # 1 个配置入口
-├── 【MacOS】🔍Git依据提交日志关键字查找.command/  # 1 个入口
-├── 【MacOS】🔍Git寻找分支最近的一次原始切点.command/  # 1 个入口
-├── 【MacOS】🚪双击打开Github.Flutter.command/  # 1 个入口
-├── 【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command/  # 1 个入口
-├── 【MacOS】🚪双击打开Github.JobsOCKit.command/  # 1 个入口
-├── 【MacOS】🧭更新引用Git父仓=>子仓.command/  # 1 个入口
-├── 【MacOS】🧮双击统计MD文件的有效行数.command/  # 1 个入口
-├── 【MacOS】🧹清理Git子仓运行态记录.command/  # 1 个入口
-└── 【MacOS】🧾更新gitmodules.command/  # 1 个入口
+├── MacOS/                 # 原 20 个脚本包、README、资源与测试
+├── WindowsOS/             # 20 组 CMD + PowerShell 平行功能
+│   ├── GitTools.psm1      # 公共原生 Windows Git 实现
+│   ├── MarkdownLines.ps1  # 提交钩子统计核心
+│   ├── 功能映射.json
+│   └── 各功能包/
+├── .jobs-markdown-toc/    # 受控文档目录工具
+└── .gitattributes
 ```
 
 ## 三、<span id="script-workflows">其它脚本执行流程</span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-本仓共有 20 个用户入口。统计时间：2026-10-22；按当前第一层脚本包中的同名主脚本计数，独立子 Git、测试、函数库及内嵌运行模板不作为用户运行入口。这里只列本仓维护的主入口，以下步骤以静态源码和配套说明为准；具体脚本的验证范围另见其 README。
+本仓提供 20 项功能、MacOS 20 个和 WindowsOS 20 个用户入口。统计时间：2026-10-23；MacOS 按平台目录中同名主脚本计数，WindowsOS 每对 CMD / PS1 计一个入口，独立子 Git、测试、函数库及内嵌运行模板不作为用户运行入口。这里只列本仓维护的主入口，以下步骤以静态源码和配套说明为准；具体脚本的验证范围另见其 README。
 
-### <span id="jobs-toc-heading-8" data-jobs-toc="v2">[【MacOS】🌐双击配置Git动态代理.command](./【MacOS】🌐双击配置Git动态代理.command/【MacOS】🌐双击配置Git动态代理.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-8" data-jobs-toc="v2">[【MacOS】🌐双击配置Git动态代理.command](./MacOS/【MacOS】🌐双击配置Git动态代理.command/【MacOS】🌐双击配置Git动态代理.command)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 一次安装终端与 Sourcetree 共用的动态网络入口，自动使用当前可达的系统代理或直连链路。
 
@@ -183,80 +184,93 @@ JobsCommand@Gits/
 - 后续普通 HTTP / HTTPS Git 操作先验证当前系统代理，代理关闭或不可用时再尝试直连；不绑定 VPN 品牌或固定端口。
 - 重复安装保持幂等；可只读检查或精确恢复本次配置，后续用户改动发生冲突时保留并停止，不清空整份配置。
 
-### <span id="jobs-toc-heading-9" data-jobs-toc="v2">[【MacOS】⏬双击下载SourceTree效率脚本.command](./%E3%80%90MacOS%E3%80%91%E2%8F%AC%E5%8F%8C%E5%87%BB%E4%B8%8B%E8%BD%BDSourceTree%E6%95%88%E7%8E%87%E8%84%9A%E6%9C%AC.command/%E3%80%90MacOS%E3%80%91%E2%8F%AC%E5%8F%8C%E5%87%BB%E4%B8%8B%E8%BD%BDSourceTree%E6%95%88%E7%8E%87%E8%84%9A%E6%9C%AC.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-9" data-jobs-toc="v2">[【MacOS】⏬双击下载SourceTree效率脚本.command](<./MacOS/【MacOS】⏬双击下载SourceTree效率脚本.command/【MacOS】⏬双击下载SourceTree效率脚本.command>)</span><!-- jobs-toc:heading-end -->
 
-> **目的：** 取得可本地运行的 [**Sourcetree**](https://www.sourcetreeapp.com/) 脚本库。
+> **目的：** 重新下载 SourceTree 效率脚本库，并为脚本添加执行权限。
 
-- 检查 Git 和脚本声明的下载位置。
-- 按提示处理已有目标，再从配置的远端克隆脚本库。
-- 给下载入口补执行权限并打开输出目录。
+- 来源固定为 `https://github.com/JobsKits/SourceTree.sh.git`，目标是当前用户目录下的 `SourceTree.command`。
+- 进入业务后直接删除已有目标目录，再执行 `git clone --depth=1`；只保留浅克隆历史。
+- 递归对下载库中的 `.sh`、`.command` 文件添加执行权限。
+- 完成后用 Finder 打开目标目录；不运行新脚本，也不安装 SourceTree 菜单。
+  - **源码没有目标备份、YES 二次确认或失败回滚。** 首屏回车之后，目标已有内容及 Git 元数据会被删除，克隆失败也不会恢复。
 
+### <span id="jobs-toc-heading-10" data-jobs-toc="v2">[【MacOS】♻️双击Git 提交回退.command](<./MacOS/【MacOS】♻️双击Git 提交回退.command/【MacOS】♻️双击Git 提交回退.command>)</span><!-- jobs-toc:heading-end -->
 
-### <span id="jobs-toc-heading-10" data-jobs-toc="v2">[【MacOS】♻️双击Git 提交回退.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BBGit%20%E6%8F%90%E4%BA%A4%E5%9B%9E%E9%80%80.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BBGit%20%E6%8F%90%E4%BA%A4%E5%9B%9E%E9%80%80.command)</span><!-- jobs-toc:heading-end -->
+> **目的：** 通过 fzf 选择上一提交、tag 或 reflog，并执行 Git 本地回退。
 
-> **目的：** 为选中的 Git 仓库选择历史目标并执行回退。
+- 检查 / 安装 Homebrew、fzf，选择脚本所在 Git 根或拖入仓库；只接受 `.git` 目录形式的仓库。
+- 发现暂存区已有变更时停止，要求先处理暂存内容。
+- “上一提交”可选 `soft` 或 `hard`，目标为 `HEAD^`。
+- “tag”先按标签选择目标，再选择 soft / hard；“reflog”选择记录后固定 soft。
+- 取消菜单或不选择标签 / reflog 时跳过对应回退；结果写入同名临时日志。
+  - **hard 会直接丢弃已跟踪工作区改动，当前实现没有额外 YES 确认，也不先创建恢复分支。** 首屏确认与选择菜单即进入执行。
 
-- 定位当前仓库或子仓，检查可用的历史记录。
-- 选择回退目标与模式，核对即将影响的提交和工作区。
-- 按脚本确认后执行回退并打印状态。
-  - 如果选择 hard，工作区修改可能丢失；先核对备份和确认提示。
+### <span id="jobs-toc-heading-11" data-jobs-toc="v2">[【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](<./MacOS/【MacOS】♻️双击恢复误删本地Git已储藏的资料.command/【MacOS】♻️双击恢复误删本地Git已储藏的资料.command>)</span><!-- jobs-toc:heading-end -->
 
+> **目的：** 搜寻 Git dangling 对象，并尝试恢复 commit、tree 与 blob。
 
-### <span id="jobs-toc-heading-11" data-jobs-toc="v2">[【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BB%E6%81%A2%E5%A4%8D%E8%AF%AF%E5%88%A0%E6%9C%AC%E5%9C%B0Git%E5%B7%B2%E5%82%A8%E8%97%8F%E7%9A%84%E8%B5%84%E6%96%99.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E5%8F%8C%E5%87%BB%E6%81%A2%E5%A4%8D%E8%AF%AF%E5%88%A0%E6%9C%AC%E5%9C%B0Git%E5%B7%B2%E5%82%A8%E8%97%8F%E7%9A%84%E8%B5%84%E6%96%99.command)</span><!-- jobs-toc:heading-end -->
+- 从脚本所在目录定位 Git 根，执行 `git fsck --lost-found`，把对象清单暂存到工作树 `.fsck_temp`。
+- 每个 dangling commit 创建 `recovered-commit-<SHA>` 分支，再自动尝试合并到当前分支。
+- 每个 dangling tree 用 `git commit-tree` 创建提交和 `recovered-tree-<SHA>` 分支，再尝试合并。
+- 每个 dangling blob 输出为工作树 `recovered/blobs/<SHA>.txt` 并自动暂存；后缀 txt 不代表原对象一定是文本。
+- 结束移除 `.fsck_temp`，由用户检查恢复文件和合并现场，决定是否创建最终提交。
+  - **该入口不是普通 stash 选择恢复。** 它批量处理 fsck 暴露的悬空对象，且自动尝试 `merge --allow-unrelated-histories --no-commit`，可能产生冲突。
 
-> **目的：** 从本地 Git 悬空对象中寻找并恢复误删资料。
+### <span id="jobs-toc-heading-12" data-jobs-toc="v2">[【MacOS】♻️批量Git提交（不含推送）.command](<./MacOS/【MacOS】♻️批量Git提交（不含推送）.command/【MacOS】♻️批量Git提交（不含推送）.command>)</span><!-- jobs-toc:heading-end -->
 
-- 在目标仓运行对象检查，列出可恢复的提交或文件对象。
-- 选择恢复分支或文件名，核对对象内容。
-- 按所选方式恢复到工作区或分支，并输出后续审查提示。
+> **目的：** 遍历指定大目录中的 Git 仓库，有改动时自动暂存和创建本地提交。
 
+- 输入 / 拖入扫描根目录；当前用户目录的 `.last_sourcetree_path` 保存上次路径，后续回车复用。
+- 用 find 搜寻 `.git` 目录并排序去重；实体 `.git` 才被列入，指针形式的子模块 / worktree 不在此扫描范围。
+- 逐仓检查 `git status --porcelain`；有改动执行 `git add .`。
+- 提交说明固定为 `自动提交：<当前日期时间>`；无改动仓库跳过，提交失败显示提示后继续。
+- 不执行 push，最终留在扫描循环最后成功进入的仓库。
+  - 会把每个仓库全部可跟踪改动混入同一提交，没有逐仓预览或自定义提交说明菜单。
 
-### <span id="jobs-toc-heading-12" data-jobs-toc="v2">[【MacOS】♻️批量Git提交（不含推送）.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%89%B9%E9%87%8FGit%E6%8F%90%E4%BA%A4%EF%BC%88%E4%B8%8D%E5%90%AB%E6%8E%A8%E9%80%81%EF%BC%89.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%89%B9%E9%87%8FGit%E6%8F%90%E4%BA%A4%EF%BC%88%E4%B8%8D%E5%90%AB%E6%8E%A8%E9%80%81%EF%BC%89.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-13" data-jobs-toc="v2">[【MacOS】♻️检测并转换为子Git.command](<./MacOS/【MacOS】♻️检测并转换为子Git.command/【MacOS】♻️检测并转换为子Git.command>)</span><!-- jobs-toc:heading-end -->
 
-> **目的：** 为所选范围的本地仓库批量创建提交。
+> **目的：** 扫描父仓中的独立嵌套 Git，交互选择后转成子模块关联。
 
-- 输入起点目录并选择待处理仓库范围。
-- 遍历 Git 工作树，检查并暂存脚本范围内的修改。
-- 为有变更的仓库创建提交并汇总结果，不执行推送。
+- 默认以启动时当前目录为起点，也接受第一个路径参数；非 Git 路径循环要求重输，并解析到所属 Git 根。
+- 枚举 `.git` 目录或指针文件，排除 `.gitmodules` 已登记 path 及 Pods、build、DerivedData、Carthage、.swiftpm、node_modules、.gradle、.idea、.vscode 等目录。
+- 展示相对路径、origin、分支；单项直接确认，多项用 fzf 的 TAB 多选、ALL 或 Ctrl+A 全选。
+- 父仓有改动时显示状态，回车继续、非空返回；每项再次采用回车转换、非空跳过。
+- 转换前把原工作树移到系统临时目录备份，清理对应旧索引 / 关联残留，再用原 origin 执行 submodule add。
+  - 会移动子仓工作树、写父仓 `.gitmodules`、索引 gitlink 和本地关联；备份位置以终端实际输出为准，不能承诺零副作用。
 
+### <span id="jobs-toc-heading-14" data-jobs-toc="v2">[【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](<./MacOS/【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command/【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command>)</span><!-- jobs-toc:heading-end -->
 
-### <span id="jobs-toc-heading-13" data-jobs-toc="v2">[【MacOS】♻️检测并转换为子Git.command](./%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%A3%80%E6%B5%8B%E5%B9%B6%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%AD%90Git.command/%E3%80%90MacOS%E3%80%91%E2%99%BB%EF%B8%8F%E6%A3%80%E6%B5%8B%E5%B9%B6%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%AD%90Git.command)</span><!-- jobs-toc:heading-end -->
+> **目的：** 生成个人 SSH 密钥，加载 ssh-agent、复制公钥并打开 GitHub 配置页面。
 
-> **目的：** 检查本地嵌套仓库并按选择转换为父仓子模块。
+- 选择算法：回车或 `1` 为 ED25519，`2` 为 RSA 4096；非法输入回落 ED25519。
+- 个人邮箱可输入或使用屏幕提示的默认值；生成目标固定为当前用户 `.ssh` 中的 `id_rsa_personal`，与所选算法无关。
+- 生成密钥使用空口令；启动 ssh-agent，调用 `ssh-add --apple-use-keychain` 并列出已加载密钥。
+- 显示并复制 `.pub` 公钥，打开 GitHub SSH 设置页供手工登记。
+- 缺少 `Host github.com` 时向 `.ssh/config` 追加配置；向已有 `.zshrc`、`.bash_profile` 追加 ssh-agent 启动行，最后交互测试 `ssh -T git@github.com`。
+  - 生成和检查确认采用“回车同意，非空输入退出”；不能把本入口写成统一 YES 确认。已有同名密钥由 ssh-keygen 自己询问覆盖。
 
-- 准备 [**Python**](https://www.python.org/) 环境并选择起点目录。
-- 扫描可处理仓库，核对子仓远端和父子关系并展示计划。
-- 按选择备份、转换和登记，完成后检查父仓差异；不应把此操作当纯扫描。
+### <span id="jobs-toc-heading-15" data-jobs-toc="v2">[【MacOS】⚙️双击生成Github远程仓库URL.command](<./MacOS/【MacOS】⚙️双击生成Github远程仓库URL.command/【MacOS】⚙️双击生成Github远程仓库URL.command>)</span><!-- jobs-toc:heading-end -->
 
+> **目的：** 在 GitHub 创建远端仓库，并输出、打开 API 返回的网页地址。
 
-### <span id="jobs-toc-heading-14" data-jobs-toc="v2">[【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](./%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E4%B8%BA%E7%A7%81%E4%BA%BA%E8%B4%A6%E6%88%B7%E7%94%9F%E6%88%90%20SSH%20%E5%AF%86%E9%92%A5%EF%BC%88%E5%8A%A0%E5%AF%86%E6%89%8B%E6%AE%B5%EF%BC%9ARSA%204096%20%2B%20ED25519%20%E4%BA%8C%E9%80%89%E4%B8%80%EF%BC%89.command/%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E4%B8%BA%E7%A7%81%E4%BA%BA%E8%B4%A6%E6%88%B7%E7%94%9F%E6%88%90%20SSH%20%E5%AF%86%E9%92%A5%EF%BC%88%E5%8A%A0%E5%AF%86%E6%89%8B%E6%AE%B5%EF%BC%9ARSA%204096%20%2B%20ED25519%20%E4%BA%8C%E9%80%89%E4%B8%80%EF%BC%89.command)</span><!-- jobs-toc:heading-end -->
+- 检查 Homebrew 与 jq；jq 缺失时执行 `brew install jq`。
+- 交互输入 GitHub 用户名、个人访问令牌和仓库名；用户名仅收集，API 根据令牌确定账户。
+- 向 `https://api.github.com/user/repos` 发送 POST，只提交 `name` 字段；未提供 private/public 菜单。
+- 用 jq 读取 `html_url`，在终端输出，并优先调用 `xdg-open`、否则 macOS `open`。
+  - 令牌由普通 `read` 读取，会在终端回显；不能在共享终端运行，也不要把令牌复制到日志或截图。
 
-> **目的：** 为个人账号生成并配置 [**SSH**](https://www.openssh.com/) 登录密钥。
+### <span id="jobs-toc-heading-16" data-jobs-toc="v2">[【MacOS】⬆️Git添加子模块.command](<./MacOS/【MacOS】⬆️Git添加子模块.command/【MacOS】⬆️Git添加子模块.command>)</span><!-- jobs-toc:heading-end -->
 
-- 选择 RSA 4096 或 ED25519，填写邮箱和密钥保存位置。
-- 检查既有密钥，按提示生成密钥并配置 SSH config 与 agent。
-- 打开公钥设置页面，并按选择验证连接；私钥留在本机。
+> **目的：** 按内置五仓清单全量重建子模块，并把关联与最新指针提交到父仓。
 
+- 定位脚本所属 Git 根，执行 git init / add，并枚举 `.gitmodules` 与索引中的全部子模块路径。
+- 直接删除现有子模块工作树及对应 `.git/modules`，清空 `.gitmodules`，尝试创建清理提交。
+- 内置重新添加 Flutter、iOS、Gits、Others、JobsSh 五仓，使用 `../真实仓名.git`；分支默认 main，环境变量 `SUBMODULE_BRANCH` 可覆盖添加分支。
+- 同步登记、递归初始化、拉取远端并 merge；随后尽可能切到 main / origin/main，再把 gitlink 变更提交回父仓。
+- 父仓已有 origin 时保留；缺少时要求输入可访问远端并配置。源码没有 git push 调用。
+  - **这是破坏性全量重建。** 首屏与业务自述回车后即可删除，不存在额外 YES 门禁；没有原工作树备份。
 
-### <span id="jobs-toc-heading-15" data-jobs-toc="v2">[【MacOS】⚙️双击生成Github远程仓库URL.command](./%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E7%94%9F%E6%88%90Github%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93URL.command/%E3%80%90MacOS%E3%80%91%E2%9A%99%EF%B8%8F%E5%8F%8C%E5%87%BB%E7%94%9F%E6%88%90Github%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93URL.command)</span><!-- jobs-toc:heading-end -->
-
-> **目的：** 调用 [**GitHub**](https://github.com) API 创建仓库并取得网页地址。
-
-- 检查 [**Homebrew**](https://brew.sh/) / jq，输入账号、Token 和新仓名。
-- 向 GitHub 创建仓库接口发送请求。
-- 提取返回 URL 并打开浏览器；此操作会创建真实远端仓库。
-
-
-### <span id="jobs-toc-heading-16" data-jobs-toc="v2">[【MacOS】⬆️Git添加子模块.command](./%E3%80%90MacOS%E3%80%91%E2%AC%86%EF%B8%8FGit%E6%B7%BB%E5%8A%A0%E5%AD%90%E6%A8%A1%E5%9D%97.command/%E3%80%90MacOS%E3%80%91%E2%AC%86%EF%B8%8FGit%E6%B7%BB%E5%8A%A0%E5%AD%90%E6%A8%A1%E5%9D%97.command)</span><!-- jobs-toc:heading-end -->
-
-> **目的：** 按内置清单重新建立子模块并记录父仓提交。
-
-- 核对脚本清单、执行目录和已有子模块。
-- 按源码流程清理现有子模块，再添加与下载目标清单。
-- 更新子模块到配置分支并记录指针，处理父仓提交与远端配置；会删除重建关联。
-
-
-### <span id="jobs-toc-heading-17" data-jobs-toc="v2">[【MacOS】🎬上传GitHub视频附件.command](./%E3%80%90MacOS%E3%80%91%F0%9F%8E%AC%E4%B8%8A%E4%BC%A0GitHub%E8%A7%86%E9%A2%91%E9%99%84%E4%BB%B6.command/%E3%80%90MacOS%E3%80%91%F0%9F%8E%AC%E4%B8%8A%E4%BC%A0GitHub%E8%A7%86%E9%A2%91%E9%99%84%E4%BB%B6.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-17" data-jobs-toc="v2">[【MacOS】🎬上传GitHub视频附件.command](<./MacOS/【MacOS】🎬上传GitHub视频附件.command/【MacOS】🎬上传GitHub视频附件.command>)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 上传本地视频为 GitHub 附件并取得可粘贴 URL。
 
@@ -264,35 +278,30 @@ JobsCommand@Gits/
 - 检查 gh 登录和目标仓库写权限。
 - 上传附件，输出并复制 URL；重复执行会产生新附件，不自动改 README。
 
+### <span id="jobs-toc-heading-18" data-jobs-toc="v2">[【MacOS】🔍Git依据提交日志关键字查找.command](<./MacOS/【MacOS】🔍Git依据提交日志关键字查找.command/【MacOS】🔍Git依据提交日志关键字查找.command>)</span><!-- jobs-toc:heading-end -->
 
-### <span id="jobs-toc-heading-18" data-jobs-toc="v2">[【MacOS】🔍Git依据提交日志关键字查找.command](./%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E4%BE%9D%E6%8D%AE%E6%8F%90%E4%BA%A4%E6%97%A5%E5%BF%97%E5%85%B3%E9%94%AE%E5%AD%97%E6%9F%A5%E6%89%BE.command/%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E4%BE%9D%E6%8D%AE%E6%8F%90%E4%BA%A4%E6%97%A5%E5%BF%97%E5%85%B3%E9%94%AE%E5%AD%97%E6%9F%A5%E6%89%BE.command)</span><!-- jobs-toc:heading-end -->
+> **目的：** 依据提交说明推断当前分支来源，并在无法自动判断时搜索提交锚点。
 
-> **目的：** 按提交说明关键词定位历史记录。
+- 输入 / 拖入仓库；回车默认脚本目录，支持 `.git` 目录、指针以及裸仓识别。
+- 读取当前分支和从早到晚的提交标题，解析 `Merge … into …` / 中文“合并…到…”语句，寻找目标为当前分支的来源。
+- 自动未命中进入锚点模式：可用 fzf 选已有标题，也可手输字面关键词；空输入跳过。
+- 优先在 HEAD 第一父链匹配，未命中再搜索 HEAD 全历史；默认选择结果列表首项，输入 `2` 选末项。
+- 输出锚点完整 SHA、作者、时间和标题；不切换分支，不修改提交。
+  - 分支来源属于基于提交文字的推断，提交标题不规范、重命名、squash 或历史重写会影响结果；不能当作拓扑证明。
 
-- 确定目标 Git 仓库并输入搜索关键词。
-- 筛选提交记录，在列表中选择要查看的提交。
-- 显示提交号、作者、时间与标题，按提示继续查询。
+### <span id="jobs-toc-heading-19" data-jobs-toc="v2">[【MacOS】🔍Git寻找分支最近的一次原始切点.command](<./MacOS/【MacOS】🔍Git寻找分支最近的一次原始切点.command/【MacOS】🔍Git寻找分支最近的一次原始切点.command>)</span><!-- jobs-toc:heading-end -->
 
+> **目的：** 结合本机 reflog 与 Git 拓扑，推断目标分支父分支及分叉提交。
 
-### <span id="jobs-toc-heading-19" data-jobs-toc="v2">[【MacOS】🔍Git寻找分支最近的一次原始切点.command](./%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E5%AF%BB%E6%89%BE%E5%88%86%E6%94%AF%E6%9C%80%E8%BF%91%E7%9A%84%E4%B8%80%E6%AC%A1%E5%8E%9F%E5%A7%8B%E5%88%87%E7%82%B9.command/%E3%80%90MacOS%E3%80%91%F0%9F%94%8DGit%E5%AF%BB%E6%89%BE%E5%88%86%E6%94%AF%E6%9C%80%E8%BF%91%E7%9A%84%E4%B8%80%E6%AC%A1%E5%8E%9F%E5%A7%8B%E5%88%87%E7%82%B9.command)</span><!-- jobs-toc:heading-end -->
+- 输入 / 拖入仓库；回车默认脚本目录，要求 `.git` 目录或指针。
+- 从本地、远端跟踪分支中选目标；有 fzf 时选择，缺失或取消可手输分支名。
+- 读取目标本地分支最早保留的 reflog，尝试提取 Created from / checkout 来源线索。
+- 逐个候选执行 `merge-base --fork-point`，失败回落 `merge-base`；按分叉时间和候选第一父链距离评分。
+- 输出推测父分支、分叉提交详情、分叉后首个独有提交、ahead / behind 和 first-parent 提交数。
+- 回车继续分析同仓其它分支，`c` 更换仓库，`q` 退出。
+  - reflog 仅反映当前机器保留的记录；自动排名是启发式推断，多次合并和改写历史时需要人工核对。
 
-> **目的：** 找出两条分支最近的共同历史起点。
-
-- 确定 Git 仓库并列出可比较的分支。
-- 选择两条分支，计算共同祖先或分叉起点。
-- 输出提交信息，并按提示继续下一轮比较。
-
-
-### <span id="jobs-toc-heading-20" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.Flutter.command](./%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.Flutter.command/%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.Flutter.command)</span><!-- jobs-toc:heading-end -->
-
-> **目的：** 打开脚本预设的 GitHub 项目主页。
-
-- 阅读入口自述并继续。
-- 读取脚本内固定的项目 URL。
-- 使用默认浏览器打开该主页。
-
-
-### <span id="jobs-toc-heading-21" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command](./%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCBaseConfigDemo.command/%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCBaseConfigDemo.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-20" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.Flutter.command](<./MacOS/【MacOS】🚪双击打开Github.Flutter.command/【MacOS】🚪双击打开Github.Flutter.command>)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 打开脚本预设的 GitHub 项目主页。
 
@@ -300,8 +309,7 @@ JobsCommand@Gits/
 - 读取脚本内固定的项目 URL。
 - 使用默认浏览器打开该主页。
 
-
-### <span id="jobs-toc-heading-22" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.JobsOCKit.command](./%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCKit.command/%E3%80%90MacOS%E3%80%91%F0%9F%9A%AA%E5%8F%8C%E5%87%BB%E6%89%93%E5%BC%80Github.JobsOCKit.command)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-21" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command](<./MacOS/【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command/【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command>)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 打开脚本预设的 GitHub 项目主页。
 
@@ -309,17 +317,26 @@ JobsCommand@Gits/
 - 读取脚本内固定的项目 URL。
 - 使用默认浏览器打开该主页。
 
+### <span id="jobs-toc-heading-22" data-jobs-toc="v2">[【MacOS】🚪双击打开Github.JobsOCKit.command](<./MacOS/【MacOS】🚪双击打开Github.JobsOCKit.command/【MacOS】🚪双击打开Github.JobsOCKit.command>)</span><!-- jobs-toc:heading-end -->
 
-### <span id="jobs-toc-heading-23" data-jobs-toc="v2">[【MacOS】🧮双击统计MD文件的有效行数.command](./%E3%80%90MacOS%E3%80%91%F0%9F%A7%AE%E5%8F%8C%E5%87%BB%E7%BB%9F%E8%AE%A1MD%E6%96%87%E4%BB%B6%E7%9A%84%E6%9C%89%E6%95%88%E8%A1%8C%E6%95%B0.command/%E3%80%90MacOS%E3%80%91%F0%9F%A7%AE%E5%8F%8C%E5%87%BB%E7%BB%9F%E8%AE%A1MD%E6%96%87%E4%BB%B6%E7%9A%84%E6%9C%89%E6%95%88%E8%A1%8C%E6%95%B0.command)</span><!-- jobs-toc:heading-end -->
+> **目的：** 打开脚本预设的 GitHub 项目主页。
 
-> **目的：** 安装统计 Markdown 有效行数的提交钩子。
+- 阅读入口自述并继续。
+- 读取脚本内固定的项目 URL。
+- 使用默认浏览器打开该主页。
 
-- 确认脚本位于目标 Git 项目，检查 .git。
-- 写入 pre-commit：提交时扫描 Markdown、计算有效行数并更新统计内容。
-- 给钩子补执行权限并显示安装结果；后续提交会触发该钩子。
+### <span id="jobs-toc-heading-23" data-jobs-toc="v2">[【MacOS】🧮双击统计MD文件的有效行数.command](<./MacOS/【MacOS】🧮双击统计MD文件的有效行数.command/【MacOS】🧮双击统计MD文件的有效行数.command>)</span><!-- jobs-toc:heading-end -->
 
+> **目的：** 安装 pre-commit 钩子，在提交时更新 Markdown 的有效行数标记。
 
-### <span id="jobs-toc-heading-24" data-jobs-toc="v2">[【MacOS】🧹清理Git子仓运行态记录.command](./%E3%80%90MacOS%E3%80%91%F0%9F%A7%B9%E6%B8%85%E7%90%86Git%E5%AD%90%E4%BB%93%E8%BF%90%E8%A1%8C%E6%80%81%E8%AE%B0%E5%BD%95.command/%E3%80%90MacOS%E3%80%91%F0%9F%A7%B9%E6%B8%85%E7%90%86Git%E5%AD%90%E4%BB%93%E8%BF%90%E8%A1%8C%E6%80%81%E8%AE%B0%E5%BD%95.command)</span><!-- jobs-toc:heading-end -->
+- 定位脚本所在 Git 根，用 `git rev-parse --git-path hooks/pre-commit` 解析真实钩子路径；已有钩子或链接时停止保留。
+- 只有预先包含独占行 `当前总行数：0 行`（数字可不同）的 `.md` 才参与更新。
+- 每次提交时递归 find `.md`，排除空行、以 # 开头的行与三反引号围栏行后计算行数；围栏内正文仍计数。
+- 用 macOS sed 原地替换标记，并对改过的每份文档执行 `git add`。
+- 安装完成显示钩子文件属性；当前运行只安装钩子，不立即创建 Git 提交。
+  - 已有钩子不会覆盖，须手工整合；提交时的行数更新会整文件暂存，部分暂存文档须先核查。
+
+### <span id="jobs-toc-heading-24" data-jobs-toc="v2">[【MacOS】🧹清理Git子仓运行态记录.command](<./MacOS/【MacOS】🧹清理Git子仓运行态记录.command/【MacOS】🧹清理Git子仓运行态记录.command>)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 让运行态记录退出 Git 跟踪，同时保留本机文件。
 
@@ -327,5 +344,33 @@ JobsCommand@Gits/
 - 输入 YES 后，为各仓补齐运行态忽略规则。
 - 将匹配的已跟踪运行态路径从索引移除，真实文件不删除；完成后检查各仓差异。
 
+## 四、<span id="dual-platform">MacOS / WindowsOS 功能对应</span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+
+MacOS 原脚本整体保留在 [`./MacOS/`](./MacOS/README.md)，Windows 实现位于 [`./WindowsOS/`](./WindowsOS/README.md)。本仓 20 项功能均不涉及 iOS 模拟器控制，全部提供 Windows 对应入口；打开 OC 仓库网页与下载 iOS 项目源码仍可在 Windows 使用。
+
+| MacOS 功能包 | Windows 功能包 |
+| --- | --- |
+| [【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command](<./MacOS/【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command/README.md>) | [【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）](<./WindowsOS/【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）/README.md>) |
+| [【MacOS】⏬双击下载SourceTree效率脚本.command](<./MacOS/【MacOS】⏬双击下载SourceTree效率脚本.command/README.md>) | [【WindowsOS】⏬双击下载SourceTree效率脚本](<./WindowsOS/【WindowsOS】⏬双击下载SourceTree效率脚本/README.md>) |
+| [【MacOS】♻️双击Git 提交回退.command](<./MacOS/【MacOS】♻️双击Git 提交回退.command/README.md>) | [【WindowsOS】♻️双击Git 提交回退](<./WindowsOS/【WindowsOS】♻️双击Git 提交回退/README.md>) |
+| [【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](<./MacOS/【MacOS】♻️双击恢复误删本地Git已储藏的资料.command/README.md>) | [【WindowsOS】♻️双击恢复误删本地Git已储藏的资料](<./WindowsOS/【WindowsOS】♻️双击恢复误删本地Git已储藏的资料/README.md>) |
+| [【MacOS】♻️批量Git提交（不含推送）.command](<./MacOS/【MacOS】♻️批量Git提交（不含推送）.command/README.md>) | [【WindowsOS】♻️批量Git提交（不含推送）](<./WindowsOS/【WindowsOS】♻️批量Git提交（不含推送）/README.md>) |
+| [【MacOS】♻️检测并转换为子Git.command](<./MacOS/【MacOS】♻️检测并转换为子Git.command/README.md>) | [【WindowsOS】♻️检测并转换为子Git](<./WindowsOS/【WindowsOS】♻️检测并转换为子Git/README.md>) |
+| [【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](<./MacOS/【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command/README.md>) | [【WindowsOS】⚙️双击为私人账户生成 SSH 密钥（加密手段_RSA 4096 + ED25519 二选一）](<./WindowsOS/【WindowsOS】⚙️双击为私人账户生成 SSH 密钥（加密手段_RSA 4096 + ED25519 二选一）/README.md>) |
+| [【MacOS】⚙️双击生成Github远程仓库URL.command](<./MacOS/【MacOS】⚙️双击生成Github远程仓库URL.command/README.md>) | [【WindowsOS】⚙️双击生成Github远程仓库URL](<./WindowsOS/【WindowsOS】⚙️双击生成Github远程仓库URL/README.md>) |
+| [【MacOS】⬆️Git添加子模块.command](<./MacOS/【MacOS】⬆️Git添加子模块.command/README.md>) | [【WindowsOS】⬆️Git添加子模块](<./WindowsOS/【WindowsOS】⬆️Git添加子模块/README.md>) |
+| [【MacOS】🌐双击配置Git动态代理.command](<./MacOS/【MacOS】🌐双击配置Git动态代理.command/README.md>) | [【WindowsOS】🌐双击配置Git动态代理](<./WindowsOS/【WindowsOS】🌐双击配置Git动态代理/README.md>) |
+| [【MacOS】🎬上传GitHub视频附件.command](<./MacOS/【MacOS】🎬上传GitHub视频附件.command/README.md>) | [【WindowsOS】🎬上传GitHub视频附件](<./WindowsOS/【WindowsOS】🎬上传GitHub视频附件/README.md>) |
+| [【MacOS】🔍Git依据提交日志关键字查找.command](<./MacOS/【MacOS】🔍Git依据提交日志关键字查找.command/README.md>) | [【WindowsOS】🔍Git依据提交日志关键字查找](<./WindowsOS/【WindowsOS】🔍Git依据提交日志关键字查找/README.md>) |
+| [【MacOS】🔍Git寻找分支最近的一次原始切点.command](<./MacOS/【MacOS】🔍Git寻找分支最近的一次原始切点.command/README.md>) | [【WindowsOS】🔍Git寻找分支最近的一次原始切点](<./WindowsOS/【WindowsOS】🔍Git寻找分支最近的一次原始切点/README.md>) |
+| [【MacOS】🚪双击打开Github.Flutter.command](<./MacOS/【MacOS】🚪双击打开Github.Flutter.command/README.md>) | [【WindowsOS】🚪双击打开Github.Flutter](<./WindowsOS/【WindowsOS】🚪双击打开Github.Flutter/README.md>) |
+| [【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command](<./MacOS/【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command/README.md>) | [【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo](<./WindowsOS/【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo/README.md>) |
+| [【MacOS】🚪双击打开Github.JobsOCKit.command](<./MacOS/【MacOS】🚪双击打开Github.JobsOCKit.command/README.md>) | [【WindowsOS】🚪双击打开Github.JobsOCKit](<./WindowsOS/【WindowsOS】🚪双击打开Github.JobsOCKit/README.md>) |
+| [【MacOS】🧭更新引用Git父仓=＞子仓.command](<./MacOS/【MacOS】🧭更新引用Git父仓%3D＞子仓.command/README.md>) | [【WindowsOS】🧭更新引用Git父仓到子仓](<./WindowsOS/【WindowsOS】🧭更新引用Git父仓到子仓/README.md>) |
+| [【MacOS】🧮双击统计MD文件的有效行数.command](<./MacOS/【MacOS】🧮双击统计MD文件的有效行数.command/README.md>) | [【WindowsOS】🧮双击统计MD文件的有效行数](<./WindowsOS/【WindowsOS】🧮双击统计MD文件的有效行数/README.md>) |
+| [【MacOS】🧹清理Git子仓运行态记录.command](<./MacOS/【MacOS】🧹清理Git子仓运行态记录.command/README.md>) | [【WindowsOS】🧹清理Git子仓运行态记录](<./WindowsOS/【WindowsOS】🧹清理Git子仓运行态记录/README.md>) |
+| [【MacOS】🧾更新gitmodules.command](<./MacOS/【MacOS】🧾更新gitmodules.command/README.md>) | [【WindowsOS】🧾更新gitmodules](<./WindowsOS/【WindowsOS】🧾更新gitmodules/README.md>) |
+
+Windows 使用 PowerShell 5.1+、Git for Windows；不依赖 Homebrew、zsh、osascript。所有入口先显示自述；危险动作精确 `YES`。Windows 分支最新同步、回退、恢复、关联、清理等保留本地审查边界，自动创建提交/推送不作为同步默认动作。动态代理具有独立安装、只读检查和精准恢复，不修改系统代理。具体参数、日志和 Windows 实机验证边界见各包 README。
 
 <a id="🔚" href="#前言" style="font-size:17px; color:green; font-weight:bold;">我是有底线的➤点我回到首页</a>
