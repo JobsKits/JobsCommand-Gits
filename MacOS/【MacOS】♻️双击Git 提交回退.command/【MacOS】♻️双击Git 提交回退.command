@@ -454,9 +454,49 @@ run_original_logic() {
   get_cpu_arch() {
     [[ "$(uname -m)" == "arm64" ]] && echo "arm64" || echo "x86_64"
   }
-  # ✅ fzf 安装方式选择器
-  fzf_select() {
-    printf "%s\n" "$@" | fzf --prompt="📦 请选择：" --header="👇 请选择操作"
+  typeset -gA RESET_MENU_QUERY RESET_MENU_POSITION
+  typeset -g RESET_SELECTION=""
+  # 选择回退选项，分别返回已选、返回、空选、取消和失败状态。
+  select_reset_option() {
+    local menu_key="$1" has_parent="$2" prompt="$3" header="$4"
+    shift 4
+    local selection_output="" selector_result=0 selected_row="" row_index=1
+    local -a selector_options
+    selector_options=(--height=80% --layout=reverse --sync --print-query
+      --query="${RESET_MENU_QUERY[$menu_key]:-}"
+      --bind="start:pos(${RESET_MENU_POSITION[$menu_key]:-1})"
+      --prompt="$prompt")
+    if [[ "$has_parent" == 1 ]]; then
+      selector_options+=(--expect=left --header="$header｜← 返回上一层｜Esc 取消流程")
+    else
+      selector_options+=(--header="$header｜回车选择｜Esc 取消流程")
+    fi
+    RESET_SELECTION=""
+    selection_output="$(printf '%s\n' "$@" | fzf "${selector_options[@]}")" || selector_result=$?
+    case "$selector_result" in
+      0|1) ;;
+      130) return 130 ;;
+      *) error_echo "fzf 选择失败（退出码 $selector_result）。"; return "$selector_result" ;;
+    esac
+    RESET_MENU_QUERY[$menu_key]="${selection_output%%$'\n'*}"
+    selected_row="${selection_output#*$'\n'}"
+    if [[ "$has_parent" == 1 ]]; then
+      [[ "${selected_row%%$'\n'*}" != left ]] || return 10
+      selected_row="${selected_row#*$'\n'}"
+    fi
+    (( selector_result == 0 )) || return 11
+    [[ -n "$selected_row" ]] || return 11
+    local candidate=""
+    for candidate in "$@"; do
+      if [[ "$candidate" == "$selected_row" ]]; then
+        RESET_MENU_POSITION[$menu_key]="$row_index"
+        RESET_SELECTION="$selected_row"
+        return 0
+      fi
+      row_index=$((row_index + 1))
+    done
+    error_echo "选择结果不在当前候选列表，停止回退。"
+    return 2
   }
   # ✅ 安装 Homebrew（芯片架构兼容、含环境注入）
   install_homebrew() {
@@ -545,53 +585,85 @@ run_original_logic() {
       exit 1
     fi
   }
-  # ✅ 回退到上一提交（支持 soft/hard）
+  # 全部选择完成后执行一次回退；hard 必须精确 YES 确认。
+  perform_git_reset() {
+    local mode="$1" target="$2"
+    if [[ "$mode" == hard ]]; then
+      confirm_yes "hard 回退到 $target 将丢弃已跟踪工作区及暂存改动。" || return 130
+    fi
+    if ! git reset "--$mode" "$target"; then
+      error_echo "Git $mode 回退失败：$target"
+      return 1
+    fi
+    success_echo "✅ 已 $mode 回退到：$target"
+  }
+  # 选择上一提交的回退方式，左键返回模式菜单。
   reset_to_previous_commit() {
-    local mode=$(fzf_select "soft 回退（保留更改）" "hard 回退（清除所有更改）")
-    if [[ "$mode" == *soft* ]]; then
-      git reset --soft HEAD^
-      success_echo "✅ soft 回退成功"
-    elif [[ "$mode" == *hard* ]]; then
-      git reset --hard HEAD^
-      error_echo "⚠️ hard 回退成功"
-    else
-      warn_echo "❌ 操作取消"
-    fi
+    select_reset_option previous-mode 1 "📦 回退方式：" "目标 HEAD^" \
+      "soft 回退（保留更改）" "hard 回退（清除所有更改）" || return $?
+    perform_git_reset "${RESET_SELECTION%% *}" 'HEAD^'
   }
-  # ✅ 回退到 tag（可选 soft/hard）
+  # 逐层选择标签与回退方式，返回时重新展示真实上层。
   reset_to_tag() {
-    local tag=$(git tag | sort -r | fzf --prompt="🏷️ 选择 tag：" --header="👇 可回退的 tag")
-    [[ -z "$tag" ]] && warn_echo "❌ 未选择 tag，已取消" && return
-    local mode=$(fzf_select "soft 回退到 tag $tag" "hard 回退到 tag $tag")
-    if [[ "$mode" == *soft* ]]; then
-      git reset --soft "$tag"
-      success_echo "✅ 已 soft 回退到 tag: $tag"
-    elif [[ "$mode" == *hard* ]]; then
-      git reset --hard "$tag"
-      error_echo "⚠️ 已 hard 回退到 tag: $tag"
-    fi
+    local tag="" previous_tag="" selection_result=0 tag_output=""
+    local -a tags
+    tag_output="$(git tag)" || return 1
+    [[ -n "$tag_output" ]] || { warn_echo "当前仓库没有 tag，返回模式菜单。"; return 10; }
+    tag_output="$(printf '%s\n' "$tag_output" | sort -r)" || return 1
+    tags=("${(@f)tag_output}")
+    while true; do
+      select_reset_option tags 1 "🏷️ 选择 tag：" "可回退的 tag" "${tags[@]}" || return $?
+      tag="$RESET_SELECTION"
+      if [[ "$tag" != "$previous_tag" ]]; then
+        unset 'RESET_MENU_QUERY[tag-mode]' 'RESET_MENU_POSITION[tag-mode]'
+      fi
+      previous_tag="$tag"
+      selection_result=0
+      select_reset_option tag-mode 1 "📦 回退方式：" "目标 tag：$tag" \
+        "soft 回退到 tag $tag" "hard 回退到 tag $tag" || selection_result=$?
+      if (( selection_result == 10 )); then
+        continue
+      fi
+      (( selection_result == 0 )) || return "$selection_result"
+      perform_git_reset "${RESET_SELECTION%% *}" "$tag"
+      return $?
+    done
   }
-  # ✅ 通过 reflog 回退（安全恢复）
+  # 选择 reflog 记录，左键返回模式菜单，选定后仅执行 soft。
   reset_to_reflog() {
-    local target=$(git reflog --pretty=oneline | fzf --prompt="📜 选择 reflog 记录：" --height=80% \
-      --header="👇 Git reflog 历史记录回退" | awk '{print $1}')
-    [[ -z "$target" ]] && warn_echo "❌ 未选择记录，已取消" && return
-    git reset --soft "$target"
-    success_echo "✅ 已 soft 回退到 reflog: $target"
+    local reflog_output="" target=""
+    local -a reflog_rows
+    reflog_output="$(git reflog --pretty=oneline)" || return 1
+    [[ -n "$reflog_output" ]] || { warn_echo "当前仓库没有 reflog，返回模式菜单。"; return 10; }
+    reflog_rows=("${(@f)reflog_output}")
+    select_reset_option reflog 1 "📜 选择 reflog：" "reflog 历史记录（soft）" "${reflog_rows[@]}" || return $?
+    target="${RESET_SELECTION%% *}"
+    perform_git_reset soft "$target"
   }
-  # ✅ 模式选择器入口
+  # 循环编排选择状态，返回不执行业务，取消结束整个选择流程。
   select_reset_mode() {
-    local choice=$(fzf_select \
-      "回退到上一提交（soft/hard）" \
-      "回退到 tag（按标签选择）" \
-      "回退到 reflog 历史记录")
-
-    case "$choice" in
-      *上一提交*) reset_to_previous_commit ;;
-      *tag*)       reset_to_tag ;;
-      *reflog*)    reset_to_reflog ;;
-      *) warn_echo "❌ 未选择操作，已取消" ;;
-    esac
+    local choice="" selection_result=0
+    while true; do
+      selection_result=0
+      select_reset_option mode 0 "📦 回退模式：" "Git 回退工具" \
+        "回退到上一提交（soft/hard）" \
+        "回退到 tag（按标签选择）" \
+        "回退到 reflog 历史记录" || selection_result=$?
+      if (( selection_result == 0 )); then
+        choice="$RESET_SELECTION"
+        case "$choice" in
+          *上一提交*) reset_to_previous_commit || selection_result=$? ;;
+          *tag*) reset_to_tag || selection_result=$? ;;
+          *reflog*) reset_to_reflog || selection_result=$? ;;
+        esac
+      fi
+      case "$selection_result" in
+        0) return 0 ;;
+        10) continue ;;
+        11|130) note_echo "回退选择已取消，未执行回退。"; return 0 ;;
+        *) return "$selection_result" ;;
+      esac
+    done
   }
   # ✅ 进入 Git 仓库路径
   enter_git_repo_dir() {
@@ -612,36 +684,42 @@ run_original_logic() {
     read "confirm?📎 按回车继续（Ctrl+C 退出）："
     echo "" | jobs_intro_style body
   }
-  # ✅ 主流程入口函数
-  main() {
+  # 依次检查依赖和仓库，选择失败时停止并传回退出码。
+  run_git_reset_flow() {
     clear
     print_git_reset_intro   # 自述
-    install_homebrew        # 🍺 安装或更新 Homebrew（根据 CPU 架构）
-    install_fzf             # 🔍 安装或升级 fzf 工具（交互选择器）
-    enter_git_repo_dir      # 📂 获取并进入 Git 仓库路径（支持拖入路径）
-    check_staged_changes    # ⚠️ 检查是否存在暂存更改，避免数据冲突
+    install_homebrew || return $? # 检查 Homebrew 后才继续依赖流程。
+    install_fzf || return $? # 确认交互选择器可用。
+    enter_git_repo_dir || return $? # 获取并进入用户选择的 Git 仓库。
+    check_staged_changes || return $? # 暂存区有变更时停止回退。
     select_reset_mode       # 🚦 交互式选择 Git 回退模式并执行
   }
 
-  main "$@"
+  run_git_reset_flow "$@"
 
   # =========================== 原脚本业务逻辑区结束 ===========================
 }
 # 编排脚本的高层业务流程。
 # 初始化脚本运行环境，并集中承载原有的顶层执行逻辑。
 initialize_script_runtime() {
+  setopt NO_NOMATCH
   : > "$LOG_FILE"
+}
+# 汇总完整业务结果，选择器或 Git 失败时保留失败状态。
+run_and_report_git_reset() {
+  local result_code=0
+  run_original_logic "$@" || result_code=$?
+  if (( result_code != 0 )); then
+    error_echo "脚本执行失败（退出码 $result_code）。日志：$LOG_FILE"
+    return "$result_code"
+  fi
+  success_echo "脚本执行结束。日志：$LOG_FILE"
 }
 # 编排脚本的高层业务流程。
 main() {
-  # 展示脚本内置自述，并按运行入口完成防误触确认。
-  show_script_intro_and_wait
-  # 初始化 Shell 选项、日志、依赖和入口运行状态。
-  initialize_script_runtime
-  # 执行 run_original_logic 对应的核心业务步骤。
-  run_original_logic "$@"
-  # 输出脚本执行结果、摘要和日志位置。
-  success_echo "脚本执行结束。日志：$LOG_FILE"
+  show_script_intro_and_wait # 展示脚本内置自述，等待回车确认。
+  initialize_script_runtime # 初始化 Shell 选项和本次日志。
+  run_and_report_git_reset "$@" # 执行回退流程并传播真实结果。
 }
 
 main "$@"

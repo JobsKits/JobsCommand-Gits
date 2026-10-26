@@ -260,7 +260,13 @@ select_menu_action() {
  if [[ -f "$CASE_ROOT/counter" ]]; then print 2 >> "$CASE_ROOT/counter"; print '退出'; else print 1 > "$CASE_ROOT/counter"; print '选择指定子模块同步（可多选）'; fi
 }
 select_configured_submodules_interactive() { return 2; }
-main_menu_loop "$CASE_ROOT/preview"
+menu_result=0
+main_menu_loop "$CASE_ROOT/preview" || menu_result=$?
+if (( $+functions[run_download_selection_loop] )); then
+ [[ "$menu_result" == 130 ]]
+else
+ [[ "$menu_result" == 0 ]]
+fi
 [[ "$(cat "$CASE_ROOT/counter")" == $'1\n2' ]]
 ''')
                 self.assertIn('已退出', output)
@@ -269,24 +275,35 @@ main_menu_loop "$CASE_ROOT/preview"
         for source in SOURCES:
             for action, func in [('全量同步更新下载到最新', 'full_sync_to_latest'), ('只更新目前已有的', 'update_existing_to_latest'), ('添加并同步一个新的 Git 地址', 'add_new_git_url_interactive')]:
                 with self.subTest(source=source, action=action):
-                    self.shell(source, f'build_intro_content() {{ print preview; }}\nselect_menu_action() {{ print -r -- {action!r}; }}\n{func}() {{ return 37; }}\nif main_menu_loop "$CASE_ROOT/preview"; then print UNEXPECTED_ZERO; exit 94; fi\n')
+                    self.shell(source, f'build_intro_content() {{ print preview; }}\nsynchronize_parent_repository() {{ return 0; }}\nselect_menu_action() {{ print -r -- {action!r}; }}\n{func}() {{ return 37; }}\nif main_menu_loop "$CASE_ROOT/preview"; then print UNEXPECTED_ZERO; exit 94; fi\n')
 
     def test_recursion_menu_choice_changes_mode_and_cancel_preserves_previous_mode(self) -> None:
         for source in SOURCES:
             with self.subTest(source=source):
                 self.shell(source, r'''
 [[ "$SUBMODULE_RECURSIVE" == 1 && "$(submodule_recursion_label)" == *向下递归* ]]
-fzf() { cat >/dev/null; print -r -- '仅直属一层（不拉取下层）'; }
+fzf() {
+ cat >/dev/null
+ (( $+functions[run_download_selection_loop] )) && print ''
+ print -r -- '仅直属一层（不拉取下层）'
+}
 select_submodule_recursion_interactive
 [[ "$SUBMODULE_RECURSIVE" == 0 && "$(submodule_recursion_label)" == *仅直属一层* ]]
 fzf() { cat >/dev/null; return 130; }
-select_submodule_recursion_interactive
+picker_result=0
+select_submodule_recursion_interactive || picker_result=$?
 [[ "$SUBMODULE_RECURSIVE" == 0 ]]
-fzf() { cat >/dev/null; print -r -- '向下递归（所选子树逐层最新）'; }
+if (( $+functions[run_download_selection_loop] )); then [[ "$picker_result" == 130 ]]; fi
+fzf() {
+ cat >/dev/null
+ (( $+functions[run_download_selection_loop] )) && print ''
+ print -r -- '向下递归（所选子树逐层最新）'
+}
 select_submodule_recursion_interactive
 [[ "$SUBMODULE_RECURSIVE" == 1 ]]
 fzf() { cat >/dev/null; return 130; }
-select_submodule_recursion_interactive
+picker_result=0
+select_submodule_recursion_interactive || picker_result=$?
 [[ "$SUBMODULE_RECURSIVE" == 1 ]]
 ''')
 
@@ -517,6 +534,64 @@ if sync_one_submodule_to_latest '目标 child'; then print UNEXPECTED_SYNCED; ex
                 self.assertNotIn('已浅同步', output)
                 self.assertTrue((target / '.git').is_dir())
                 self.assertTrue(cache.is_dir())
+
+
+    def test_fzf_navigation_never_runs_business_on_back_empty_or_cancel(self) -> None:
+        for source in SOURCES:
+            if "run_download_selection_loop()" not in source.read_text():
+                continue
+            with self.subTest(source=source):
+                output = self.shell(source, r'''
+CONFIG_PATHS=('目标 child' 'second child')
+build_submodule_picker_content() { print preview; }
+synchronize_parent_repository() { print UNEXPECTED_PARENT; }
+reconcile_gitmodules_with_config_once() { print UNEXPECTED_RECONCILE; }
+sync_selected_submodules_to_latest() { print UNEXPECTED_SYNC; }
+stage_and_commit_parent_changes() { print UNEXPECTED_COMMIT; }
+parent_push_if_needed() { print UNEXPECTED_PUSH; }
+fzf() { cat >/dev/null; print -r -- left; return 1; }
+picker_result=0
+select_configured_submodules_interactive "$CASE_ROOT/preview" || picker_result=$?
+[[ "$picker_result" == 2 ]]
+select_submodule_recursion_interactive
+[[ "$SUBMODULE_RECURSIVE" == 1 ]]
+[[ "$(select_menu_action "$CASE_ROOT/preview")" == __JOBS_BACK_MODE__ ]]
+fzf() { cat >/dev/null; return 130; }
+picker_result=0
+select_configured_submodules_interactive "$CASE_ROOT/preview" || picker_result=$?
+[[ "$picker_result" == 130 ]]
+fzf() { cat >/dev/null; print ''; }
+picker_result=0
+select_configured_submodules_interactive "$CASE_ROOT/preview" || picker_result=$?
+[[ "$picker_result" == 2 ]]
+fzf() { cat >/dev/null; return 2; }
+picker_result=0
+select_configured_submodules_interactive "$CASE_ROOT/preview" || picker_result=$?
+[[ "$picker_result" == 1 ]]
+''')
+                self.assertNotIn("UNEXPECTED_", output)
+
+    def test_mode_back_reopens_chooser_and_only_success_runs_optional_setup(self) -> None:
+        for source in SOURCES:
+            if "run_download_selection_loop()" not in source.read_text():
+                continue
+            with self.subTest(source=source):
+                (self.root / "mode-counter").unlink(missing_ok=True)
+                output = self.shell(source, r'''
+select_download_operation_mode() { print CHOOSE_MODE; DOWNLOAD_OPERATION_MODE=readonly; }
+run_selected_download_mode() {
+ if [[ ! -f "$CASE_ROOT/mode-counter" ]]; then
+  print 1 > "$CASE_ROOT/mode-counter"
+  return 20
+ fi
+ print COMPLETED_DOWNLOAD
+}
+offer_global_markdown_toc_setup() { print OPTIONAL_SETUP; }
+run_download_selection_loop
+''')
+                self.assertEqual(2, output.count("CHOOSE_MODE"))
+                self.assertEqual(1, output.count("COMPLETED_DOWNLOAD"))
+                self.assertEqual(1, output.count("OPTIONAL_SETUP"))
 
 
 if __name__ == "__main__":

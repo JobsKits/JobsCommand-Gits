@@ -26,6 +26,8 @@
 
 使用 [**Windows PowerShell**](https://learn.microsoft.com/powershell/) 5.1 或更新版本，推荐直接双击 `.cmd`。普通入口使用 PowerShell 5.1 公共语法，动态代理安装专用入口明确要求 Desktop 5.1。需要 [**Git for Windows**](https://gitforwindows.org/)，远端创建与视频上传另需 [**GitHub CLI**](https://cli.github.com/)。脚本使用 UTF-8 BOM，CMD 使用当前脚本完整路径调用配套 PS1，路径可包含中文、空格和括号。
 
+CMD 入口先关闭继承的延迟展开，保留路径和参数中的 `!`；PowerShell 使用进程级 `-ExecutionPolicy Bypass`，企业组策略仍优先，不写入系统执行策略。
+
 ## <span id="jobs-toc-heading-3" data-jobs-toc="v2">二、功能与安全边界 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
 | Windows 入口 | 用途 |

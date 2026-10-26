@@ -50,6 +50,22 @@ try {
     foreach ($path in @('../escape','a/../escape','a//b','/absolute','.git/config','a>z','CON','folder.')) { Assert-Throws { Resolve-JobsChildPath $root $path } ('应拒绝 '+$path) }
     Assert-Throws { Invoke-JobsNative 'jobs-command-that-does-not-exist-fixture' @('--version') -Quiet } '缺少命令不能复用上次成功退出码'
     $parent=New-FixtureRepository (Join-Path $root '父仓 空格') 'https://code.example/team/Parent.git'
+    $consoleEncoding=[Console]::OutputEncoding
+    $pipelineEncoding=$OutputEncoding
+    try {
+        [Console]::OutputEncoding=[Text.Encoding]::ASCII
+        $OutputEncoding=[Text.Encoding]::Unicode
+        Assert-Equal $parent (Invoke-JobsGit $parent @('rev-parse','--show-toplevel') -Quiet).Text '非 UTF8 终端仍能读取中文 Git 根目录'
+        Assert-Equal 20127 ([Console]::OutputEncoding.CodePage) '成功后恢复终端原编码'
+        Assert-Equal 1200 $OutputEncoding.CodePage '原生命令保留管道输入编码'
+        Assert-Throws { Invoke-JobsGit $parent @('jobs-missing-fixture-command') -Quiet } '原生命令非零退出必须停止'
+        Assert-Equal 20127 ([Console]::OutputEncoding.CodePage) '非零退出后恢复终端原编码'
+        Assert-Throws { Invoke-JobsNative 'jobs-command-that-does-not-exist-fixture' @('--version') -Quiet } '查找命令失败必须停止'
+        Assert-Equal 20127 ([Console]::OutputEncoding.CodePage) '查找命令失败保留终端编码'
+    } finally {
+        [Console]::OutputEncoding=$consoleEncoding
+        $OutputEncoding=$pipelineEncoding
+    }
     $child=New-FixtureRepository (Join-Path $parent '子仓 (一)') 'https://code.example/team/Child.git'
     $head=(Invoke-JobsGit $child @('rev-parse','HEAD') -Quiet).Text
     $before=Get-JobsAssociationFingerprint $parent
@@ -123,14 +139,24 @@ try {
     $rebuild=New-FixtureRepository (Join-Path $root '重建父仓') (Join-Path $remoteFolder 'Parent.git')
     [void](Invoke-JobsGit $rebuild @('submodule','add','--',(Join-Path $remoteFolder 'JobsCommand-Flutter.git'),'JobsGenesis@JobsCommand.Flutter') -Quiet)
     [void](Invoke-JobsGit $rebuild @('commit','-m','old fixture module') -Quiet)
+    $originalMetadata=(Invoke-JobsGit (Join-Path $rebuild 'JobsGenesis@JobsCommand.Flutter') @('rev-parse','--absolute-git-dir') -Quiet).Text
+    $originalMetadataHead=[Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $originalMetadata 'HEAD')))
+    $originalMetadataConfig=[Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $originalMetadata 'config')))
     Invoke-JobsRebuildModules $rebuild
     Assert-Equal 5 @(Get-JobsModules $rebuild).Count '重建五仓关联完整'
     Assert-Equal 'main' (Invoke-JobsGit (Join-Path $rebuild 'JobsGenesis@JobsCommand.Flutter') @('symbolic-ref','--short','HEAD') -Quiet).Text '重建后保持分支'
     $rebuildGit=(Invoke-JobsGit $rebuild @('rev-parse','--absolute-git-dir') -Quiet).Text
-    $maps=@(Get-ChildItem -LiteralPath (Join-Path $rebuildGit 'jobs-submodule-backups') -Recurse -Filter 'worktree-metadata-map.json')
+    # 映射只位于每次备份的顶层，不遍历旧 Git 对象和 refs 深层目录。
+    $maps=@(foreach ($directory in Get-ChildItem -LiteralPath (Join-Path $rebuildGit 'jobs-submodule-backups') -Directory) {
+        $map=Join-Path $directory.FullName 'worktree-metadata-map.json'
+        if (Test-Path -LiteralPath $map -PathType Leaf) { Get-Item -LiteralPath $map }
+    })
     Assert-Equal 1 $maps.Count '重建保留原路径映射'
-    $records=Get-Content -LiteralPath $maps[0].FullName -Raw | ConvertFrom-Json
+    $records=Get-Content -LiteralPath $maps[0].FullName -Raw -Encoding UTF8 | ConvertFrom-Json
     Assert-Equal $true (Test-Path -LiteralPath $records.MetadataBackup) '重建保留完整旧元数据'
+    Assert-Equal $originalMetadata $records.GitDirectory '备份映射保持原始 Git 元数据位置'
+    Assert-Equal $originalMetadataHead ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $records.MetadataBackup 'HEAD')))) '备份保留旧 HEAD 原始字节'
+    Assert-Equal $originalMetadataConfig ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $records.MetadataBackup 'config')))) '备份保留旧 config 原始字节'
     [void](Invoke-JobsGit $seed @('branch','feature') -Quiet)
     [void](Invoke-JobsGit $seed @('push','origin','feature') -Quiet)
     [void](Invoke-JobsGit $fresh @('config','--file',(Join-Path $fresh '.gitmodules'),'submodule.新子仓.branch','feature') -Quiet)

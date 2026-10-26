@@ -18,12 +18,18 @@ function Invoke-JobsNative {
     param([string]$Program,[string[]]$Arguments,[switch]$AllowFailure,[switch]$Quiet)
     $command=Get-Command $Program -CommandType Application -ErrorAction Stop | Select-Object -First 1
     $oldPreference=$ErrorActionPreference
+    $oldConsoleEncoding=[Console]::OutputEncoding
     try {
+        # Git 的路径输出为 UTF-8，不能按终端当前代码页解码。
+        [Console]::OutputEncoding=New-Object Text.UTF8Encoding($false)
         $ErrorActionPreference='Continue'
         $global:LASTEXITCODE=0
         $output=@(& $command.Source @Arguments 2>&1 | ForEach-Object { $_.ToString() })
         $result=$LASTEXITCODE
-    } finally { $ErrorActionPreference=$oldPreference }
+    } finally {
+        [Console]::OutputEncoding=$oldConsoleEncoding
+        $ErrorActionPreference=$oldPreference
+    }
     if (-not $Quiet) { foreach ($line in $output) { Write-JobsLog $line } }
     if ($result -ne 0 -and -not $AllowFailure) { throw "$Program 执行失败（$result），已停止；详情见日志。" }
     return @{Code=$result;Lines=$output;Text=($output -join "`n")}
