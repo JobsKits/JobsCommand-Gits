@@ -26,7 +26,7 @@
 
 ## <span id="jobs-toc-heading-3" data-jobs-toc="v2">二、入口清单 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
 
-- [【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command](<./【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command/README.md>)：按登记逐层拉取目标分支最新，恢复本地跟踪分支；默认不提交、不推送。
+- [【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command](<./【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command/README.md>)：逐层查询目标分支最新，完成标记匹配时跳过该仓下载但继续检查后代；持久对象缓存、限时重试及临时工作树核验后发布，默认不提交、不推送。
 - [【MacOS】⏬双击下载SourceTree效率脚本.command](<./【MacOS】⏬双击下载SourceTree效率脚本.command/README.md>)：删除当前用户既有 SourceTree.command 目录后浅克隆，添加脚本执行权限并打开目录；没有自动备份。
 - [【MacOS】♻️双击Git 提交回退.command](<./【MacOS】♻️双击Git 提交回退.command/README.md>)：选择上一提交 / tag 的 soft 或 hard，或 reflog soft 回退；不创建恢复分支，hard 无额外 YES 门禁。
 - [【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](<./【MacOS】♻️双击恢复误删本地Git已储藏的资料.command/README.md>)：批量恢复 dangling commit/tree，尝试合入当前分支，并导出、暂存 blob；可能产生冲突。

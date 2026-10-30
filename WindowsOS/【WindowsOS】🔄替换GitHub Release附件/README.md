@@ -12,10 +12,10 @@
 
 | 文件 | 职责 |
 | --- | --- |
-| [【WindowsOS】🔄替换GitHub Release附件.cmd](<./【WindowsOS】🔄替换GitHub Release附件.cmd>) | 双击入口，透传参数，显示退出码并暂停。 |
+| [【WindowsOS】🔄替换GitHub Release附件.cmd](<./【WindowsOS】🔄替换GitHub Release附件.cmd>) | 双击入口，透传参数，显示退出码；未设置 `JOBS_NO_PAUSE` 时暂停。 |
 | [【WindowsOS】🔄替换GitHub Release附件.ps1](<./【WindowsOS】🔄替换GitHub Release附件.ps1>) | 完整业务实现，也可由 Windows PowerShell 5.1 或已安装的 PowerShell 7 直接运行。 |
 
-两份入口放在同一目录，只保留这一份 `.ps1`。`.ps1` 使用 UTF-8 BOM；`.cmd` 使用 ASCII / CRLF，通过同目录文件定位以兼容中文及 emoji 路径。脚本不修改用户或系统全局执行策略。
+两份同名入口放在同一目录。`.ps1` 使用 UTF-8 BOM；`.cmd` 使用 ASCII / CRLF，先关闭继承的延迟展开，再通过 `%~dpn0.ps1` 定位同名脚本，保留路径和参数中的中文、emoji 及 `!`。脚本不修改用户或系统全局执行策略。
 
 ## 一、<span id="run">依赖与运行</span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 

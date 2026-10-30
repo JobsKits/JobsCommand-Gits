@@ -30,6 +30,10 @@ SUBMODULE_SHALLOW_CLONE=1
 SUBMODULE_DEPTH=1
 SUBMODULE_FETCH_TAGS=0
 REMOTE_NAME=origin
+# Logging tests control discovery independently of marker/download integration tests.
+jobs_download_remote_branch() { printf '%s\t%s\n' "${3:-main}" "$(command git -C "$1" rev-parse HEAD)"; }
+jobs_download_marker_matches() { return 1; }
+jobs_download_write_marker() { return 0; }
 run_cmd() { "$@"; }
 '''
 
@@ -156,12 +160,22 @@ print_git_source 测试 Missing "$CASE_ROOT/missing-repo" 'ssh://git@fallback.ex
             with self.subTest(script=source):
                 _, disk = self.shell(source, r'''
 clone_url_for_path() { print 'https://gitee.com/team/Child.git'; }
-remote_branch_for_url() { print NETWORK_PROBE >> "$LOG_FILE"; print main; }
-remote_branch_exists() { return 0; }
-get_ncpu() { print 1; }
+jobs_download_remote_branch() {
+  print NETWORK_PROBE >> "$LOG_FILE"
+  printf 'main\t%s\n' "$(command git -C "$CASE_ROOT/clone-source" rev-parse HEAD)"
+}
+jobs_download_checkout_from_cache() {
+  print -r -- "COMMAND git clone --no-checkout --branch $5 -- $2 $3" >> "$LOG_FILE"
+  return 37
+}
+git init -q -b main "$CASE_ROOT/clone-source"
+git -C "$CASE_ROOT/clone-source" -c user.name=Offline -c user.email=offline@example.invalid commit --allow-empty -qm fixture
 run_cmd() {
   print -r -- "COMMAND $*" >> "$LOG_FILE"
-  if [[ "$*" == *' clone '* ]]; then return 37; fi
+  if [[ "$*" == *' fetch '* ]]; then
+    command git -C "$3" fetch --no-tags "$CASE_ROOT/clone-source" '+refs/heads/main:refs/heads/main'
+    return $?
+  fi
   "$@"
 }
 clone_submodule_worktree Child || true
@@ -183,8 +197,10 @@ git -C Child config 'url.ssh://git@child.example:2222/team/.insteadOf' 'https://
 clone_url_for_path() { print 'https://github.com/team/Child.git'; }
 is_git_worktree() { return 0; }
 assert_clean_submodule() { return 0; }
-resolve_remote_branch_for_submodule() { print NETWORK_PROBE >> "$LOG_FILE"; print feature; }
-get_ncpu() { print 1; }
+jobs_download_remote_branch() {
+  print NETWORK_PROBE >> "$LOG_FILE"
+  printf 'feature\t%s\n' "$(command git -C "$1" rev-parse HEAD)"
+}
 run_cmd() {
   if [[ "$*" == *' fetch '* ]]; then print NETWORK_FETCH >> "$LOG_FILE"; return 0; fi
   if [[ "$*" == *' checkout '* || "$*" == *' reset '* || "$*" == *' branch '* || "$*" == *'submodule '* ]]; then return 0; fi
@@ -260,8 +276,7 @@ git -C Child config 'url.https://user:secret@mirror.example/team/.insteadOf' 'ht
 clone_url_for_path() { print 'https://github.com/team/Child.git'; }
 is_git_worktree() { return 0; }
 assert_clean_submodule() { return 0; }
-resolve_remote_branch_for_submodule() { print main; }
-get_ncpu() { print 1; }
+jobs_download_remote_branch() { printf 'main\t%s\n' "$(command git -C "$1" rev-parse HEAD)"; }
 run_cmd() {
   if [[ "$*" == *' fetch '* || "$*" == *' checkout '* || "$*" == *' reset '* || "$*" == *' branch '* || "$*" == *'submodule '* ]]; then return 0; fi
   "$@"

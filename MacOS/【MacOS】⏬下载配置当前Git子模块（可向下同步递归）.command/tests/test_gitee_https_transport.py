@@ -48,20 +48,23 @@ git -C "$CASE_ROOT" update-ref refs/remotes/origin/main HEAD
 clone_url_for_path() { print 'https://gitee.com/JobsGo/Child.git'; }
 is_git_worktree() { return 0; }
 assert_clean_submodule() { return 0; }
-resolve_remote_branch_for_submodule() { print main; }
+jobs_download_remote_branch() { printf 'main\t%s\n' "$(command git -C "$1" rev-parse HEAD)"; }
 sync_submodule_urls_at_repo() { return 0; }
-get_ncpu() { print 2; }
 success_echo() { print -r -- "UNEXPECTED_SUCCESS $*"; }
+# Failure propagation tests use the prepared local tip and force a marker miss.
+jobs_download_marker_matches() { return 1; }
+jobs_download_write_marker() { return 0; }
 '''
 
 SOURCES = [source for source in SOURCES if source.is_file()]
+INVENTORY_SOURCES = tuple(SOURCES)
 
 
 class GiteeHttpsTransportTests(unittest.TestCase):
     """Exercise all deployed copies without invoking their business entrypoints."""
 
     def test_migrated_package_remains_in_the_source_inventory(self) -> None:
-        self.assertIn(Path(__file__).resolve().parents[1] / SCRIPT_NAME, SOURCES)
+        self.assertIn(Path(__file__).resolve().parents[1] / SCRIPT_NAME, INVENTORY_SOURCES)
 
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory(prefix="jobs-gitee-https-regression-")
@@ -243,11 +246,17 @@ if sync_one_submodule_to_latest "$CASE_ROOT"; then print UNEXPECTED_ZERO; exit 9
         for source in SOURCES:
             with self.subTest(script=source):
                 output = self.shell(source, r'''
+git init -q -b main "$CASE_ROOT"
+git init -q -b main "$CASE_ROOT/clone-source"
+git -C "$CASE_ROOT/clone-source" commit --allow-empty -qm fixture
 clone_url_for_path() { print 'https://gitee.com/JobsGo/Child.git'; }
-remote_branch_for_url() { print main; }
-get_ncpu() { print 1; }
+jobs_download_remote_branch() { printf 'main\t%s\n' "$(command git -C "$CASE_ROOT/clone-source" rev-parse HEAD)"; }
+jobs_download_checkout_from_cache() { print EXPECTED_CLONE_FAILURE; return 37; }
 run_cmd() {
-  if [[ "$*" == *' clone '* ]]; then print EXPECTED_CLONE_FAILURE; return 37; fi
+  if [[ "$*" == *' fetch '* ]]; then
+    command git -C "$3" fetch --no-tags "$CASE_ROOT/clone-source" '+refs/heads/main:refs/heads/main'
+    return $?
+  fi
   if [[ "$1" == mkdir ]]; then "$@"; return; fi
   print UNEXPECTED_AFTER_CLONE
   return 0

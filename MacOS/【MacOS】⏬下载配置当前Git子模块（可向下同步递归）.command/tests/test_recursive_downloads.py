@@ -17,7 +17,7 @@ import tempfile
 import time
 import unittest
 
-from test_downloaders_latest import SOURCES
+from test_downloaders_latest import SOURCES, render_readonly_engine
 
 
 class RecursiveDownloadTests(unittest.TestCase):
@@ -170,7 +170,7 @@ AUTO_PARENT_PUSH=0
 
     def readonly_shell(self, source: Path, fixture: dict[str, Path | str], repo: Path) -> tuple[int, str]:
         """Give the real embedded entrypoint a terminal while keeping every Git operation local."""
-        engine = source.read_text(encoding="utf-8").split("<<'JOBS_READONLY_PULL_ENGINE'\n", 1)[1].split("\nJOBS_READONLY_PULL_ENGINE", 1)[0]
+        engine = render_readonly_engine(source)
         script = fixture["case"] / "readonly-engine.zsh"
         script.write_text(engine, encoding="utf-8")
         master, slave = pty.openpty()

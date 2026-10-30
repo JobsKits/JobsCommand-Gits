@@ -26,6 +26,48 @@ CANDIDATES += [
 ]
 SOURCES = list(dict.fromkeys(path for path in CANDIDATES if path.is_file()))
 CONFIG_PATTERN = r"(?ms)^[ \t]*SUBMODULE_REPO_URLS=\(\n.*?^[ \t]*\)"
+_READONLY_ENGINE_CACHE: dict[tuple[str, str], str] = {}
+
+
+def render_readonly_engine(source: Path) -> str:
+    """Render the shipped engine, including its current shared-function bootstrap."""
+    content = source.read_text(encoding="utf-8")
+    cache_key = (str(source.resolve()), hashlib.sha256(content.encode()).hexdigest())
+    if cache_key in _READONLY_ENGINE_CACHE:
+        return _READONLY_ENGINE_CACHE[cache_key]
+    if not re.search(r"(?m)^render_readonly_pull_engine\s*\(\s*\)", content):
+        engine = content.split("<<'JOBS_READONLY_PULL_ENGINE'\n", 1)[1].split("\nJOBS_READONLY_PULL_ENGINE", 1)[0]
+    else:
+        library, removed = re.subn(r'(?m)^main "\$@"[ \t]*\Z', "", content.rstrip("\r\n"), count=1)
+        if removed != 1:
+            raise AssertionError(f"Downloader has no unique final entrypoint: {source}")
+        with tempfile.TemporaryDirectory(prefix="jobs-render-readonly-") as temporary:
+            root = Path(temporary)
+            script = root / "library.zsh"
+            script.write_text(library, encoding="utf-8")
+            environment = {
+                "HOME": temporary, "ZDOTDIR": temporary, "TMPDIR": temporary,
+                "PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "LANG": "C", "NO_COLOR": "1",
+                "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null",
+                "GIT_ALLOW_PROTOCOL": "file", "GIT_TERMINAL_PROMPT": "0",
+                "GIT_ASKPASS": "/usr/bin/false", "GIT_SSH_COMMAND": "/usr/bin/false",
+                "SSH_ASKPASS": "/usr/bin/false",
+            }
+            result = subprocess.run(
+                ["/bin/zsh", "-f", "-c", 'source "$1"\nrender_readonly_pull_engine',
+                 "render-readonly", str(script)],
+                cwd=root, env=environment, capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode:
+                raise AssertionError(f"Cannot render {source}: {result.stderr}")
+            engine = result.stdout
+    syntax = subprocess.run(
+        ["/bin/zsh", "-f", "-n"], input=engine, capture_output=True, text=True, timeout=10,
+    )
+    if syntax.returncode:
+        raise AssertionError(f"Rendered engine is not valid zsh for {source}: {syntax.stderr}")
+    _READONLY_ENGINE_CACHE[cache_key] = engine
+    return engine
 
 
 class DownloaderLatestTests(unittest.TestCase):
@@ -152,7 +194,10 @@ repo_name_by_path() { print -r -- "$1"; }
                 config = re.search(CONFIG_PATTERN, content)
                 self.assertIsNotNone(config, str(source))
                 configurations.add(config.group())
-                outer = re.sub(r"(?ms)^  engine_code=.*?^JOBS_READONLY_PULL_ENGINE$", '', content, count=1)
+                outer = re.sub(
+                    r"(?ms)(<<'JOBS_READONLY_PULL_ENGINE'\r?\n).*?(^JOBS_READONLY_PULL_ENGINE[ \t]*$)",
+                    r"\1\2", content, count=1,
+                )
                 self.assertEqual(1, len(re.findall('^main\\(\\)', outer, re.M)))
                 self.assertEqual(1, outer.count('main "$@"'))
                 self.assertNotIn('jobs_run_original_script', content)

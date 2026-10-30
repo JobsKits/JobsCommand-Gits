@@ -18,7 +18,9 @@ import tempfile
 import time
 import unittest
 
-from test_downloaders_latest import SOURCES
+from test_downloaders_latest import SOURCES, render_readonly_engine
+
+INVENTORY_SOURCES = tuple(SOURCES)
 
 
 class MarkdownTocCheckoutTests(unittest.TestCase):
@@ -158,7 +160,7 @@ if (process.env.JOBS_TOC_TEST_JOURNAL) {
                 "urls": urls, "branches": branches, "documents": documents}
 
     def engine(self, source: Path) -> str:
-        return source.read_text(encoding="utf-8").split("<<'JOBS_READONLY_PULL_ENGINE'\n", 1)[1].split("\nJOBS_READONLY_PULL_ENGINE", 1)[0]
+        return render_readonly_engine(source)
 
     def run_engine(self, source: Path, fixture: dict) -> tuple[int, str]:
         script = fixture["case"] / "readonly-engine.zsh"
@@ -232,7 +234,7 @@ if (process.env.JOBS_TOC_TEST_JOURNAL) {
         self.assertFalse(any(key.startswith("filter.") for key in local_keys), local_keys)
 
     def test_prepared_recursive_first_checkout_uses_real_remote_before_smudge_and_later_updates(self) -> None:
-        self.assertEqual(7, len(SOURCES), "update the inventory if a maintained downloader is added or removed")
+        self.assertEqual(7, len(INVENTORY_SOURCES), "update the inventory if a maintained downloader is added or removed")
         for index, source in enumerate(SOURCES):
             with self.subTest(script=source):
                 fixture = self.fixture(f"checkout-{index}")
@@ -242,9 +244,16 @@ if (process.env.JOBS_TOC_TEST_JOURNAL) {
                          "leaf": fixture["parent"] / "Selected child/叶 child"}
                 first_events = self.events()
                 for key in ("child", "leaf"):
-                    events = [event for event in first_events if Path(event["cwd"]) == repos[key]]
+                    events = [event for event in first_events if event["origin"] == fixture["urls"][key]]
                     first_smudge = next((event for event in events if event["mode"] == "smudge"), None)
                     self.assertIsNotNone(first_smudge, f"{key}: initial checkout bypassed the configured smudge; {events}")
+                    # 首次检出在直属父仓的受控暂存区完成，随后才原子移入最终路径。
+                    parent_repo = repos["parent" if key == "child" else "child"]
+                    stage_parent = Path(self.git(parent_repo, "rev-parse", "--absolute-git-dir")) / "jobs-download-cache/worktrees"
+                    smudge_root = Path(first_smudge["cwd"])
+                    self.assertEqual(stage_parent, smudge_root.parent.parent)
+                    self.assertTrue(smudge_root.parent.name.startswith("checkout."))
+                    self.assertEqual("worktree", smudge_root.name)
                     self.assertEqual("trusted", first_smudge["role"])
                     self.assertEqual(fixture["urls"][key], first_smudge["origin"])
                     self.assertFalse(first_smudge["readmeExists"], "first checkout must write [toc] directly")
