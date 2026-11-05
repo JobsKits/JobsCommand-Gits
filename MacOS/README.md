@@ -32,7 +32,7 @@
 - [【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](<./【MacOS】♻️双击恢复误删本地Git已储藏的资料.command/README.md>)：批量恢复 dangling commit/tree，尝试合入当前分支，并导出、暂存 blob；可能产生冲突。
 - [【MacOS】♻️批量Git提交（不含推送）.command](<./【MacOS】♻️批量Git提交（不含推送）.command/README.md>)：扫描实体 .git 目录并排序，自动 add/commit，有改动才提交；不保证子仓先于父仓，不推送。
 - [【MacOS】♻️检测并转换为子Git.command](<./【MacOS】♻️检测并转换为子Git.command/README.md>)：扫描独立嵌套 Git，逐仓预检、备份、登记并使用 Git 官方命令归集元数据。
-- [【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](<./【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command/README.md>)：默认 ED25519 / 可选 RSA4096，生成 id_rsa_personal、加载 agent、复制公钥并打开设置页；须核对 Host 的 IdentityFile。
+- [【MacOS】⚙️双击为私人账户生成 SSH 密钥.command](<./【MacOS】⚙️双击为私人账户生成 SSH 密钥.command/README.md>)：终端 fzf 选算法、一次邮箱输入；生成或复用个人密钥、备份并配置实际 IdentityFile、加载 agent、自动登记或提示待完成并验证 GitHub。
 - [【MacOS】⚙️双击生成Github远程仓库URL.command](<./【MacOS】⚙️双击生成Github远程仓库URL.command/README.md>)：输入令牌与仓名，通过 curl 调用 GitHub 创建 API，仅提交 name；输出并打开返回 URL。
 - [【MacOS】⬆️Git添加子模块.command](<./【MacOS】⬆️Git添加子模块.command/README.md>)：直接删除旧子模块与关联，按五仓清单重建并自动创建本地提交；不推送，无自动备份。
 - [【MacOS】🌐双击配置Git动态代理.command](<./【MacOS】🌐双击配置Git动态代理.command/README.md>)：配置当前用户 Git 动态入口；系统代理可达优先、不可达再直连，支持检查与精确恢复。

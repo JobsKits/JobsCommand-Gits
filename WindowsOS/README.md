@@ -38,7 +38,7 @@ CMD 入口先关闭继承的延迟展开，保留路径和参数中的 `!`；Pow
 | [【WindowsOS】♻️双击恢复误删本地Git已储藏的资料](<./【WindowsOS】♻️双击恢复误删本地Git已储藏的资料/README.md>) | 检查悬空 commit/tree/blob，按选择恢复为独立分支或二进制文件。 |
 | [【WindowsOS】♻️批量Git提交（不含推送）](<./【WindowsOS】♻️批量Git提交（不含推送）/README.md>) | 扫描指定目录内 Git 工作树，后代先于父仓逐仓提交；不推送。 |
 | [【WindowsOS】♻️检测并转换为子Git](<./【WindowsOS】♻️检测并转换为子Git/README.md>) | 扫描独立嵌套 Git，逐仓预检、备份、登记并使用 Git 官方命令归集元数据。 |
-| [【WindowsOS】⚙️双击为私人账户生成 SSH 密钥（加密手段_RSA 4096 + ED25519 二选一）](<./【WindowsOS】⚙️双击为私人账户生成 SSH 密钥（加密手段_RSA 4096 + ED25519 二选一）/README.md>) | 生成个人 ED25519/RSA4096 密钥、增补 github-personal Host，复制公钥并打开设置页。 |
+| [【WindowsOS】⚙️双击为私人账户生成 SSH 密钥](<./【WindowsOS】⚙️双击为私人账户生成 SSH 密钥/README.md>) | 终端 fzf 选算法、一次邮箱输入（默认 `295060456@qq.com`，可替换）；生成或复用密钥、备份并配置实际 IdentityFile、加载 agent、登记或提示待完成并验证 GitHub。 |
 | [【WindowsOS】⚙️双击生成Github远程仓库URL](<./【WindowsOS】⚙️双击生成Github远程仓库URL/README.md>) | 通过已登录 GitHub CLI 创建 private/public 远端仓库并打开返回 URL。 |
 | [【WindowsOS】⬆️Git添加子模块](<./【WindowsOS】⬆️Git添加子模块/README.md>) | 备份旧子模块工作树和关联后，按五仓清单重新建立子模块；不自动提交。 |
 | [【WindowsOS】🌐双击配置Git动态代理](<./【WindowsOS】🌐双击配置Git动态代理/README.md>) | 配置当前用户 Git 动态入口；系统代理可达优先、不可达再直连，支持检查与精确恢复。 |

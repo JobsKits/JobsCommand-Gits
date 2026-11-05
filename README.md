@@ -20,7 +20,7 @@
   - [【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](#jobs-toc-heading-11)
   - [【MacOS】♻️批量Git提交（不含推送）.command](#jobs-toc-heading-12)
   - [【MacOS】♻️检测并转换为子Git.command](#jobs-toc-heading-13)
-  - [【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](#jobs-toc-heading-14)
+  - [【MacOS】⚙️双击为私人账户生成 SSH 密钥.command](#jobs-toc-heading-14)
   - [【MacOS】⚙️双击生成Github远程仓库URL.command](#jobs-toc-heading-15)
   - [【MacOS】⬆️Git添加子模块.command](#jobs-toc-heading-16)
   - [【MacOS】🎬上传GitHub视频附件.command](#jobs-toc-heading-17)
@@ -242,16 +242,15 @@ JobsCommand@Gits/
 - 转换前把原工作树移到系统临时目录备份，清理对应旧索引 / 关联残留，再用原 origin 执行 submodule add。
   - 会移动子仓工作树、写父仓 `.gitmodules`、索引 gitlink 和本地关联；备份位置以终端实际输出为准，不能承诺零副作用。
 
-### <span id="jobs-toc-heading-14" data-jobs-toc="v2">[【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](<./MacOS/【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command/【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command>)</span><!-- jobs-toc:heading-end -->
+### <span id="jobs-toc-heading-14" data-jobs-toc="v2">[【MacOS】⚙️双击为私人账户生成 SSH 密钥.command](<./MacOS/【MacOS】⚙️双击为私人账户生成 SSH 密钥.command/【MacOS】⚙️双击为私人账户生成 SSH 密钥.command>)</span><!-- jobs-toc:heading-end -->
 
 > **目的：** 生成个人 SSH 密钥，加载 ssh-agent、复制公钥并打开 GitHub 配置页面。
 
-- 选择算法：回车或 `1` 为 ED25519，`2` 为 RSA 4096；非法输入回落 ED25519。
-- 个人邮箱可输入或使用屏幕提示的默认值；生成目标固定为当前用户 `.ssh` 中的 `id_rsa_personal`，与所选算法无关。
-- 生成密钥使用空口令；启动 ssh-agent，调用 `ssh-add --apple-use-keychain` 并列出已加载密钥。
-- 显示并复制 `.pub` 公钥，打开 GitHub SSH 设置页供手工登记。
-- 缺少 `Host github.com` 时向 `.ssh/config` 追加配置；向已有 `.zshrc`、`.bash_profile` 追加 ssh-agent 启动行，最后交互测试 `ssh -T git@github.com`。
-  - 生成和检查确认采用“回车同意，非空输入退出”；不能把本入口写成统一 YES 确认。已有同名密钥由 ssh-keygen 自己询问覆盖。
+- 内置自述回车确认后，用 fzf 选择 ED25519 / RSA 4096，填写一次绑定邮箱；默认 `295060456@qq.com`，可输入其它邮箱替换。
+- 自动创建或复用匹配算法与邮箱的空口令个人密钥，已有同名文件不覆盖；备份 SSH 配置并将 github.com / github-personal 指向实际私钥，加载 agent 并复制公钥。
+- gh 已登录且输入邮箱属于账号已验证邮箱时自动登记；缺少授权则明确显示待完成并打开官方网页。首次主机公钥从 GitHub 官方 HTTPS 元数据取得，连接只验证本次密钥，不借其它 agent 身份误报成功。
+- 菜单提供打开密钥文件夹和 GitHub 公钥网页入口；算法取消、空选、输入结束或依赖失败不生成密钥。
+  - 本仓保留 MacOS / WindowsOS 黑窗终端脚本；独立 GUI 工具位于 [JobsSSHKeyMgr.py](../JobsPythonTools.py/JobsSSHKeyMgr.py/README.md)。
 
 ### <span id="jobs-toc-heading-15" data-jobs-toc="v2">[【MacOS】⚙️双击生成Github远程仓库URL.command](<./MacOS/【MacOS】⚙️双击生成Github远程仓库URL.command/【MacOS】⚙️双击生成Github远程仓库URL.command>)</span><!-- jobs-toc:heading-end -->
 
@@ -360,7 +359,7 @@ MacOS 原脚本整体保留在 [`./MacOS/`](./MacOS/README.md)，Windows 实现�
 | [【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](<./MacOS/【MacOS】♻️双击恢复误删本地Git已储藏的资料.command/README.md>) | [【WindowsOS】♻️双击恢复误删本地Git已储藏的资料](<./WindowsOS/【WindowsOS】♻️双击恢复误删本地Git已储藏的资料/README.md>) |
 | [【MacOS】♻️批量Git提交（不含推送）.command](<./MacOS/【MacOS】♻️批量Git提交（不含推送）.command/README.md>) | [【WindowsOS】♻️批量Git提交（不含推送）](<./WindowsOS/【WindowsOS】♻️批量Git提交（不含推送）/README.md>) |
 | [【MacOS】♻️检测并转换为子Git.command](<./MacOS/【MacOS】♻️检测并转换为子Git.command/README.md>) | [【WindowsOS】♻️检测并转换为子Git](<./WindowsOS/【WindowsOS】♻️检测并转换为子Git/README.md>) |
-| [【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command](<./MacOS/【MacOS】⚙️双击为私人账户生成 SSH 密钥（加密手段：RSA 4096 + ED25519 二选一）.command/README.md>) | [【WindowsOS】⚙️双击为私人账户生成 SSH 密钥（加密手段_RSA 4096 + ED25519 二选一）](<./WindowsOS/【WindowsOS】⚙️双击为私人账户生成 SSH 密钥（加密手段_RSA 4096 + ED25519 二选一）/README.md>) |
+| [【MacOS】⚙️双击为私人账户生成 SSH 密钥.command](<./MacOS/【MacOS】⚙️双击为私人账户生成 SSH 密钥.command/README.md>) | [【WindowsOS】⚙️双击为私人账户生成 SSH 密钥](<./WindowsOS/【WindowsOS】⚙️双击为私人账户生成 SSH 密钥/README.md>) |
 | [【MacOS】⚙️双击生成Github远程仓库URL.command](<./MacOS/【MacOS】⚙️双击生成Github远程仓库URL.command/README.md>) | [【WindowsOS】⚙️双击生成Github远程仓库URL](<./WindowsOS/【WindowsOS】⚙️双击生成Github远程仓库URL/README.md>) |
 | [【MacOS】⬆️Git添加子模块.command](<./MacOS/【MacOS】⬆️Git添加子模块.command/README.md>) | [【WindowsOS】⬆️Git添加子模块](<./WindowsOS/【WindowsOS】⬆️Git添加子模块/README.md>) |
 | [【MacOS】🌐双击配置Git动态代理.command](<./MacOS/【MacOS】🌐双击配置Git动态代理.command/README.md>) | [【WindowsOS】🌐双击配置Git动态代理](<./WindowsOS/【WindowsOS】🌐双击配置Git动态代理/README.md>) |
