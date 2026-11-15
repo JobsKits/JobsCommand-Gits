@@ -368,4 +368,6 @@ python3 -B \
 
 `./tests/test_download_audit.py` 覆盖中断后补齐登记、首次检出失败重跑、索引隐藏内容保护、分支未变时的 tags 同步及空缓存恢复；`./tests/test_download_transport_audit.py` 覆盖远端查询失败时丢弃部分输出、一次查询同时确定分支与 SHA、歧义结果拒绝，以及真实维护入口的锁释放与竞争保护。测试依赖和独立运行命令见 [tests 说明](./tests/README.md)。
 
+**终端配色保护：** 独立运行时，在支持完整保存与恢复配色的交互终端中临时使用黑底白字及统一强调色；正常结束、失败或可捕获中断后恢复进入前的配色，不修改终端全局偏好或 Shell 启动配置。不支持完整保护、无交互终端、`NO_COLOR`、既有纯文本模式和 Sourcetree 场景不切换配色，并沿用纯文本输出约定。强制终止（如 `kill -9`）无法由脚本自身保证恢复，请使用运行时显示的独立恢复入口。
+
 <a id="🔚" href="#前言" style="font-size:17px; color:green; font-weight:bold;">我是有底线的➤点我回到首页</a>

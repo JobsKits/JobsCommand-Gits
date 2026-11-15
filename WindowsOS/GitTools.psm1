@@ -1,6 +1,68 @@
 ﻿# GitTools.psm1 | JobsCommand@Gits
 # Created by Jobs on 2026年10月23日，星期五.
 # 共享原生 Windows Git 实现；不在导入时执行业务。
+
+# Jobs enter-choice emphasis is display-only; input and business decisions stay with callers.
+function Test-JobsEnterChoiceColor {
+    if ((Test-Path Env:NO_COLOR) -or $env:TERM -ieq 'dumb' -or $env:PLAIN_OUTPUT -eq '1') { return $false }
+    $consoleType = [Console]
+    if ($null -eq $consoleType.GetProperty('IsInputRedirected') -or $null -eq $consoleType.GetProperty('IsOutputRedirected')) { return $false }
+    return ($Host.Name -ceq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -not [Console]::IsOutputRedirected)
+}
+# Older hosts keep native colors without sending unsupported bold escape sequences.
+function Test-JobsEnterChoiceBold {
+    $property = $Host.UI.PSObject.Properties['SupportsVirtualTerminal']
+    return ($null -ne $property -and [bool]$property.Value)
+}
+# Separate ordinary question text from Enter and arbitrary-input options without changing words.
+function Get-JobsEnterChoiceParts {
+    param([string]$Text)
+    $red = '(?:(?:\u8f93\u5165)?(?:\u4efb\u610f(?:\u975e\u7a7a)?(?:\u5b57\u7b26|\u5185\u5bb9|\u6587\u5b57|\u8f93\u5165)?|\u975e\u7a7a(?:\u8f93\u5165|\u5b57\u7b26|\u5185\u5bb9)?|(?:\u5176\u5b83|\u5176\u4ed6)(?:\u975e\u7a7a)?(?:\u8f93\u5165|\u5185\u5bb9|\u5b57\u7b26)?))|(?:any\s+(?:(?:other|non[- ]empty)\s+)?(?:input|text|characters?)|non[- ]empty\s+input)'
+    $green = '(?:(?:\u76f4\u63a5|\u53ea\u9700|\u4ec5(?:\u9700)?|\u6309(?:\u4e0b)?|\u7a7a)?\s*\u56de\u8f66|(?:press\s+)?\bEnter\b(?!\s+(?:YES|REPAIR|CLEAN|CONTINUE)\b))'
+    $pattern = '(?is)(?<red>(?:' + $red + ')[^;\uFF1B\r\n]*?(?=[;\uFF1B\r\n]|\z))|(?<green>(?:' + $green + ')[^;\uFF1B\r\n]*?(?=(?:' + $red + ')|[;\uFF1B\r\n]|\z))'
+    $offset = 0
+    foreach ($match in [regex]::Matches($Text, $pattern)) {
+        if ($match.Index -gt $offset) { [pscustomobject]@{ Text = $Text.Substring($offset, $match.Index - $offset); Color = '' } }
+        $prefix = [regex]::Split($Text.Substring(0, $match.Index), '[;\uFF1B\r\n]')[-1]
+        $typed = $prefix -match '(?i)(?:\u8f93\u5165|\u952e\u5165|type|enter)\s*(?:\u5927\u5199\s*)?(?:YES|REPAIR|CLEAN|CONTINUE)\b|\u7cbe\u786e\u8f93\u5165|\u8f93\u5165[^;\uFF1B\r\n]*[\u540e\u518d]\s*$'
+        $color = if ($match.Groups['red'].Success) { 'Red' } elseif ($typed) { '' } else { 'Green' }
+        [pscustomobject]@{ Text = $match.Value; Color = $color }
+        $offset = $match.Index + $match.Length
+    }
+    if ($offset -lt $Text.Length) { [pscustomobject]@{ Text = $Text.Substring($offset); Color = '' } }
+}
+# Native host text remains plain in information streams and logs; bold control is console-only.
+function Write-JobsEnterChoiceText {
+    [CmdletBinding()]
+    param([Parameter(Position=0)][AllowNull()][object]$Object, [switch]$NoNewline, [ConsoleColor]$ForegroundColor, [ConsoleColor]$BackgroundColor, [object]$Separator = ' ')
+    $text = if ($Object -is [array]) { $Object -join [string]$Separator } else { [string]$Object }
+    if (-not (Test-JobsEnterChoiceColor)) {
+        Write-Host $Object -NoNewline:$NoNewline -Separator $Separator
+        return
+    }
+    $normal = @{}
+    if ($PSBoundParameters.ContainsKey('ForegroundColor')) { $normal.ForegroundColor = $ForegroundColor }
+    if ($PSBoundParameters.ContainsKey('BackgroundColor')) { $normal.BackgroundColor = $BackgroundColor }
+    foreach ($part in @(Get-JobsEnterChoiceParts $text)) {
+        if (-not $part.Color) { Write-Host $part.Text -NoNewline @normal; continue }
+        $bold = Test-JobsEnterChoiceBold
+        if ($bold) { [Console]::Write(([string][char]27) + '[1m') }
+        try { Write-Host $part.Text -ForegroundColor $part.Color -NoNewline }
+        finally { if ($bold) { [Console]::Write(([string][char]27) + '[0m') } }
+    }
+    if (-not $NoNewline) { Write-Host }
+}
+# Delegate the original reader, including secure input and EOF behavior, after prompt display.
+function Read-JobsEnterChoiceHost {
+    [CmdletBinding()]
+    param([Parameter(Position=0)][string]$Prompt, [switch]$AsSecureString, [switch]$MaskInput)
+    if ($AsSecureString -or $MaskInput -or -not (Test-JobsEnterChoiceColor) -or @((Get-JobsEnterChoiceParts $Prompt) | Where-Object { $_.Color }).Count -eq 0) {
+        return (Read-Host @PSBoundParameters)
+    }
+    Write-JobsEnterChoiceText ($Prompt + ': ') -NoNewline
+    return (Read-Host)
+}
+
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 $script:LogFile = $null
@@ -85,7 +147,7 @@ function Resolve-JobsChildPath {
 # 命令行传入路径优先；默认从入口所在 Git 工作树定位。
 function Get-JobsRepository {
     param([string]$Path,[string]$EntryDirectory)
-    if (-not $Path) { $Path=Read-Host "目标 Git 仓库目录（回车使用入口所属仓库 $EntryDirectory）" }
+    if (-not $Path) { $Path=Read-JobsEnterChoiceHost "目标 Git 仓库目录（回车使用入口所属仓库 $EntryDirectory）" }
     if (-not $Path) { $Path=$EntryDirectory }
     $directory=Resolve-JobsDirectory $Path
     $result=Invoke-JobsGit $directory @('rev-parse','--show-toplevel') -Quiet
@@ -104,7 +166,7 @@ function Select-JobsItem {
     if ($Items.Count -eq 0) { throw "$Title：没有候选项。" }
     Write-JobsLog $Title
     for ($i=0;$i -lt $Items.Count;$i++) { Write-JobsLog (('{0}、{1}' -f ($i+1),$Items[$i])) }
-    $choice=Read-Host '输入编号（回车 1，0 取消）'
+    $choice=Read-JobsEnterChoiceHost '输入编号（回车 1，0 取消）'
     if ($choice -eq '') { $choice='1' }
     $number=0
     if (-not [int]::TryParse($choice,[ref]$number) -or $number -lt 1 -or $number -gt $Items.Count) { throw '选择已取消或编号无效。' }
@@ -116,7 +178,7 @@ function Select-JobsMultipleItems {
     if ($Items.Count -eq 0) { throw "$Title：没有候选项。" }
     Write-JobsLog $Title
     for ($i=0;$i -lt $Items.Count;$i++) { Write-JobsLog (('{0}、{1}' -f ($i+1),$Items[$i])) }
-    $answer=Read-Host '输入逗号分隔编号（例如 1,3）；回车或 0 取消'
+    $answer=Read-JobsEnterChoiceHost '输入逗号分隔编号（例如 1,3）；回车或 0 取消'
     if (-not $answer -or $answer -eq '0') { throw '已取消多选。' }
     $selected=@()
     foreach ($part in ($answer -split ',')) {
@@ -321,7 +383,7 @@ function Assert-JobsClean {
         if (-not $state) { return }
         Write-JobsLog "未提交仓库：$Repository`n$state"
         if ($script:DryRun) { throw '预览发现未提交内容，未修改。' }
-        $answer=Read-Host '外部处理后回车复检；精确 YES 舍弃当前仓源码及未跟踪文件；其它取消'
+        $answer=Read-JobsEnterChoiceHost '外部处理后回车复检；精确 YES 舍弃当前仓源码及未跟踪文件；其它取消'
         if ($answer -ceq 'YES') {
             [void](Invoke-JobsGit $Repository @('reset','--hard','--no-recurse-submodules','HEAD'))
             [void](Invoke-JobsGit $Repository @('clean','-fd'))
@@ -426,7 +488,7 @@ function Invoke-JobsDownload {
             $selected=@(Get-JobsModules $Repository | Where-Object { Test-Path -LiteralPath (Join-Path (Join-Path $Repository $_.Path) '.git') } | ForEach-Object { $_.Path })
             if ($selected.Count -eq 0) { Write-JobsLog '没有已初始化子仓，无需更新。'; return }
         } else { $selected=@(Select-JobsMultipleItems '选择子模块（可多选）' @(Get-JobsModules $Repository | ForEach-Object { $_.Path })) }
-        $depth=Read-Host '回车向下递归；输入 1 仅直属'; if ($depth -eq '1') { $Recursive=$false }
+        $depth=Read-JobsEnterChoiceHost '回车向下递归；输入 1 仅直属'; if ($depth -eq '1') { $Recursive=$false }
     } elseif (-not $script:DryRun) {
         if ($branch) {
             $upstream=Get-JobsConfig $Repository ('branch.'+$branch+'.remote')
@@ -505,7 +567,7 @@ function Invoke-JobsBatchCommit {
     foreach ($repository in $repositories) { Write-JobsLog "提交范围：$repository" }
     if ($script:DryRun) { return }
     Confirm-JobsYes '批量暂存并提交以上仓库全部改动；不执行推送。'
-    $message=Read-Host '提交说明（回车使用时间）'; if (-not $message) { $message='自动提交：'+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') }
+    $message=Read-JobsEnterChoiceHost '提交说明（回车使用时间）'; if (-not $message) { $message='自动提交：'+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') }
     foreach ($repository in $repositories) {
         if ((Invoke-JobsGit $repository @('status','--porcelain') -Quiet).Text) { [void](Invoke-JobsGit $repository @('add','--all')); [void](Invoke-JobsGit $repository @('commit','-m',$message)) }
         else { Write-JobsLog "无改动，跳过：$repository" }
@@ -1120,7 +1182,7 @@ function Confirm-JobsSshCliIntro {
     Write-Host 'GitHub 严格认证通过后，以实际账号添加 Sourcetree 普通硬链接；不改原密钥名，冲突文件保留，无需管理员权限。'
     Write-Host '权限、认证或 SourceTree 设置未完成时逐项说明；不自动提权、安装工具、提交或推送。按 Ctrl+C 随时取消。'
     if ([Console]::IsInputRedirected) { throw '请在可交互终端或双击 CMD 入口执行；未配置密钥。' }
-    $answer=Read-Host '已了解用途与影响，按回车继续；其它输入取消'
+    $answer=Read-JobsEnterChoiceHost '已了解用途与影响，按回车继续；其它输入取消'
     if ($null -eq $answer) { throw '输入已结束，未配置密钥。' }
     if ($answer -ne '') { Write-JobsSshLog '已取消，未配置密钥。'; return $false }
     return $true
@@ -1130,7 +1192,7 @@ function Read-JobsSshEmail {
     $default=Get-JobsSshDefaultEmail
     $prompt='个人邮箱'
     if ($default) { $prompt+="（直接回车使用 $default）" }
-    $email=Read-Host $prompt
+    $email=Read-JobsEnterChoiceHost $prompt
     if ($null -eq $email) { throw '输入已结束，未配置密钥。' }
     if (-not $email) { $email=$default }
     $email=$email.Trim()
@@ -1179,7 +1241,7 @@ function Invoke-JobsVideoUpload {
 # 下载 SourceTree 库优先安全更新已有仓库，非空非仓目录停止。
 function Invoke-JobsSourceTreeDownload {
     $url='https://github.com/JobsKits/SourceTree.sh.git'
-    $target=Read-Host '下载目录（回车使用用户目录下 SourceTree.command）'
+    $target=Read-JobsEnterChoiceHost '下载目录（回车使用用户目录下 SourceTree.command）'
     if (-not $target) { $target=Join-Path ([Environment]::GetFolderPath('UserProfile')) 'SourceTree.command' }
     $target=[IO.Path]::GetFullPath($target.Trim('"'))
     Write-JobsLog "来源：$url`n目标：$target"
@@ -1255,7 +1317,7 @@ function Invoke-JobsGitTool {
     if ($DryRun -and $Action -notin @('download','associate','align','convert','batch','runtime','rebuild')) { throw '此入口不支持只读预览，未执行。' }
     if (-not $DryRun) {
         if ([Console]::IsInputRedirected) { throw '请通过 CMD 双击入口或交互 PowerShell 执行；没有交互输入时停止。' }
-        if ((Read-Host '已了解用途与影响，按回车继续；其它取消') -ne '') { return }
+        if ((Read-JobsEnterChoiceHost '已了解用途与影响，按回车继续；其它取消') -ne '') { return }
     }
     if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -and -not $DryRun) { throw '业务入口需要 Windows。macOS 只能进行解析与隔离模块验证。' }
     $script:LogFile=Join-Path ([IO.Path]::GetTempPath()) ('JobsGit-'+$Action+'-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+$PID+'.log')

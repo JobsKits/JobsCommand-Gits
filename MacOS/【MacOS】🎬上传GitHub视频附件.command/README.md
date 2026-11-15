@@ -193,4 +193,6 @@ flowchart TD
 
 上传请求使用 `gh api --input` 读取视频二进制，同时通过 `--raw-field` 传入文件名、内容类型和仓库 ID。按 [**gh API 手册**](https://cli.github.com/manual/gh_api)，与 `--input` 同用的字段会进入 URL 查询参数；出现请求错误时需要核对服务端是否接受这种请求形式。
 
+**终端配色保护：** 独立运行时，在支持完整保存与恢复配色的交互终端中临时使用黑底白字及统一强调色；正常结束、失败或可捕获中断后恢复进入前的配色，不修改终端全局偏好或 Shell 启动配置。不支持完整保护、无交互终端、`NO_COLOR`、既有纯文本模式和 Sourcetree 场景不切换配色，并沿用纯文本输出约定。强制终止（如 `kill -9`）无法由脚本自身保证恢复，请使用运行时显示的独立恢复入口。
+
 <a id="🔚" href="#前言" style="font-size:17px; color:green; font-weight:bold;">我是有底线的➤点我回到首页</a>
