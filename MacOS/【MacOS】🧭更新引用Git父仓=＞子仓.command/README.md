@@ -169,7 +169,7 @@ flowchart TD
 - 隔离回归覆盖根目录与脚本包定位、目录改名、空格路径、嵌套登记与 section 异名保留、未登记同级仓排除、符号链接 / 跨仓路径阻断、本地提交与索引保留、缺失登记清理、元数据冲突、链接工作树、预览和迁移失败。在本脚本包目录执行：
 
   ```shell
-  python3 './tests/test_reference_repair.py'
+  python3 './tests/test_reference_repair.py/test_reference_repair.py'
   ```
 
 ## <span id="jobs-toc-heading-10" data-jobs-toc="v2">九、常见问题 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->

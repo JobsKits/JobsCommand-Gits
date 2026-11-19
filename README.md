@@ -353,26 +353,26 @@ MacOS 原脚本整体保留在 [`./MacOS/`](./MacOS/README.md)，Windows 实现�
 
 | MacOS 功能包 | Windows 功能包 |
 | --- | --- |
-| [【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command](<./MacOS/【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command/README.md>) | [【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）](<./WindowsOS/【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）/README.md>) |
-| [【MacOS】⏬双击下载SourceTree效率脚本.command](<./MacOS/【MacOS】⏬双击下载SourceTree效率脚本.command/README.md>) | [【WindowsOS】⏬双击下载SourceTree效率脚本](<./WindowsOS/【WindowsOS】⏬双击下载SourceTree效率脚本/README.md>) |
-| [【MacOS】♻️双击Git 提交回退.command](<./MacOS/【MacOS】♻️双击Git 提交回退.command/README.md>) | [【WindowsOS】♻️双击Git 提交回退](<./WindowsOS/【WindowsOS】♻️双击Git 提交回退/README.md>) |
-| [【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](<./MacOS/【MacOS】♻️双击恢复误删本地Git已储藏的资料.command/README.md>) | [【WindowsOS】♻️双击恢复误删本地Git已储藏的资料](<./WindowsOS/【WindowsOS】♻️双击恢复误删本地Git已储藏的资料/README.md>) |
-| [【MacOS】♻️批量Git提交（不含推送）.command](<./MacOS/【MacOS】♻️批量Git提交（不含推送）.command/README.md>) | [【WindowsOS】♻️批量Git提交（不含推送）](<./WindowsOS/【WindowsOS】♻️批量Git提交（不含推送）/README.md>) |
-| [【MacOS】♻️检测并转换为子Git.command](<./MacOS/【MacOS】♻️检测并转换为子Git.command/README.md>) | [【WindowsOS】♻️检测并转换为子Git](<./WindowsOS/【WindowsOS】♻️检测并转换为子Git/README.md>) |
-| [【MacOS】⚙️双击为私人账户生成 SSH 密钥.command](<./MacOS/【MacOS】⚙️双击为私人账户生成 SSH 密钥.command/README.md>) | [【WindowsOS】⚙️双击为私人账户生成 SSH 密钥](<./WindowsOS/【WindowsOS】⚙️双击为私人账户生成 SSH 密钥/README.md>) |
-| [【MacOS】⚙️双击生成Github远程仓库URL.command](<./MacOS/【MacOS】⚙️双击生成Github远程仓库URL.command/README.md>) | [【WindowsOS】⚙️双击生成Github远程仓库URL](<./WindowsOS/【WindowsOS】⚙️双击生成Github远程仓库URL/README.md>) |
-| [【MacOS】⬆️Git添加子模块.command](<./MacOS/【MacOS】⬆️Git添加子模块.command/README.md>) | [【WindowsOS】⬆️Git添加子模块](<./WindowsOS/【WindowsOS】⬆️Git添加子模块/README.md>) |
-| [【MacOS】🌐双击配置Git动态代理.command](<./MacOS/【MacOS】🌐双击配置Git动态代理.command/README.md>) | [【WindowsOS】🌐双击配置Git动态代理](<./WindowsOS/【WindowsOS】🌐双击配置Git动态代理/README.md>) |
-| [【MacOS】🎬上传GitHub视频附件.command](<./MacOS/【MacOS】🎬上传GitHub视频附件.command/README.md>) | [【WindowsOS】🎬上传GitHub视频附件](<./WindowsOS/【WindowsOS】🎬上传GitHub视频附件/README.md>) |
-| [【MacOS】🔍Git依据提交日志关键字查找.command](<./MacOS/【MacOS】🔍Git依据提交日志关键字查找.command/README.md>) | [【WindowsOS】🔍Git依据提交日志关键字查找](<./WindowsOS/【WindowsOS】🔍Git依据提交日志关键字查找/README.md>) |
-| [【MacOS】🔍Git寻找分支最近的一次原始切点.command](<./MacOS/【MacOS】🔍Git寻找分支最近的一次原始切点.command/README.md>) | [【WindowsOS】🔍Git寻找分支最近的一次原始切点](<./WindowsOS/【WindowsOS】🔍Git寻找分支最近的一次原始切点/README.md>) |
-| [【MacOS】🚪双击打开Github.Flutter.command](<./MacOS/【MacOS】🚪双击打开Github.Flutter.command/README.md>) | [【WindowsOS】🚪双击打开Github.Flutter](<./WindowsOS/【WindowsOS】🚪双击打开Github.Flutter/README.md>) |
-| [【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command](<./MacOS/【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command/README.md>) | [【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo](<./WindowsOS/【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo/README.md>) |
-| [【MacOS】🚪双击打开Github.JobsOCKit.command](<./MacOS/【MacOS】🚪双击打开Github.JobsOCKit.command/README.md>) | [【WindowsOS】🚪双击打开Github.JobsOCKit](<./WindowsOS/【WindowsOS】🚪双击打开Github.JobsOCKit/README.md>) |
-| [【MacOS】🧭更新引用Git父仓=＞子仓.command](<./MacOS/【MacOS】🧭更新引用Git父仓%3D＞子仓.command/README.md>) | [【WindowsOS】🧭更新引用Git父仓到子仓](<./WindowsOS/【WindowsOS】🧭更新引用Git父仓到子仓/README.md>) |
-| [【MacOS】🧮双击统计MD文件的有效行数.command](<./MacOS/【MacOS】🧮双击统计MD文件的有效行数.command/README.md>) | [【WindowsOS】🧮双击统计MD文件的有效行数](<./WindowsOS/【WindowsOS】🧮双击统计MD文件的有效行数/README.md>) |
-| [【MacOS】🧹清理Git子仓运行态记录.command](<./MacOS/【MacOS】🧹清理Git子仓运行态记录.command/README.md>) | [【WindowsOS】🧹清理Git子仓运行态记录](<./WindowsOS/【WindowsOS】🧹清理Git子仓运行态记录/README.md>) |
-| [【MacOS】🧾更新gitmodules.command](<./MacOS/【MacOS】🧾更新gitmodules.command/README.md>) | [【WindowsOS】🧾更新gitmodules](<./WindowsOS/【WindowsOS】🧾更新gitmodules/README.md>) |
+| [【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command](<./MacOS/【MacOS】⏬下载配置当前Git子模块（可向下同步递归）.command/README.md>) | [【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）](<./WindowsOS/【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）.ps1/README.md>) |
+| [【MacOS】⏬双击下载SourceTree效率脚本.command](<./MacOS/【MacOS】⏬双击下载SourceTree效率脚本.command/README.md>) | [【WindowsOS】⏬双击下载SourceTree效率脚本](<./WindowsOS/【WindowsOS】⏬双击下载SourceTree效率脚本.ps1/README.md>) |
+| [【MacOS】♻️双击Git 提交回退.command](<./MacOS/【MacOS】♻️双击Git 提交回退.command/README.md>) | [【WindowsOS】♻️双击Git 提交回退](<./WindowsOS/【WindowsOS】♻️双击Git 提交回退.ps1/README.md>) |
+| [【MacOS】♻️双击恢复误删本地Git已储藏的资料.command](<./MacOS/【MacOS】♻️双击恢复误删本地Git已储藏的资料.command/README.md>) | [【WindowsOS】♻️双击恢复误删本地Git已储藏的资料](<./WindowsOS/【WindowsOS】♻️双击恢复误删本地Git已储藏的资料.ps1/README.md>) |
+| [【MacOS】♻️批量Git提交（不含推送）.command](<./MacOS/【MacOS】♻️批量Git提交（不含推送）.command/README.md>) | [【WindowsOS】♻️批量Git提交（不含推送）](<./WindowsOS/【WindowsOS】♻️批量Git提交（不含推送）.ps1/README.md>) |
+| [【MacOS】♻️检测并转换为子Git.command](<./MacOS/【MacOS】♻️检测并转换为子Git.command/README.md>) | [【WindowsOS】♻️检测并转换为子Git](<./WindowsOS/【WindowsOS】♻️检测并转换为子Git.ps1/README.md>) |
+| [【MacOS】⚙️双击为私人账户生成 SSH 密钥.command](<./MacOS/【MacOS】⚙️双击为私人账户生成 SSH 密钥.command/README.md>) | [【WindowsOS】⚙️双击为私人账户生成 SSH 密钥](<./WindowsOS/【WindowsOS】⚙️双击为私人账户生成 SSH 密钥.ps1/README.md>) |
+| [【MacOS】⚙️双击生成Github远程仓库URL.command](<./MacOS/【MacOS】⚙️双击生成Github远程仓库URL.command/README.md>) | [【WindowsOS】⚙️双击生成Github远程仓库URL](<./WindowsOS/【WindowsOS】⚙️双击生成Github远程仓库URL.ps1/README.md>) |
+| [【MacOS】⬆️Git添加子模块.command](<./MacOS/【MacOS】⬆️Git添加子模块.command/README.md>) | [【WindowsOS】⬆️Git添加子模块](<./WindowsOS/【WindowsOS】⬆️Git添加子模块.ps1/README.md>) |
+| [【MacOS】🌐双击配置Git动态代理.command](<./MacOS/【MacOS】🌐双击配置Git动态代理.command/README.md>) | [【WindowsOS】🌐双击配置Git动态代理](<./WindowsOS/【WindowsOS】🌐双击配置Git动态代理.ps1/README.md>) |
+| [【MacOS】🎬上传GitHub视频附件.command](<./MacOS/【MacOS】🎬上传GitHub视频附件.command/README.md>) | [【WindowsOS】🎬上传GitHub视频附件](<./WindowsOS/【WindowsOS】🎬上传GitHub视频附件.ps1/README.md>) |
+| [【MacOS】🔍Git依据提交日志关键字查找.command](<./MacOS/【MacOS】🔍Git依据提交日志关键字查找.command/README.md>) | [【WindowsOS】🔍Git依据提交日志关键字查找](<./WindowsOS/【WindowsOS】🔍Git依据提交日志关键字查找.ps1/README.md>) |
+| [【MacOS】🔍Git寻找分支最近的一次原始切点.command](<./MacOS/【MacOS】🔍Git寻找分支最近的一次原始切点.command/README.md>) | [【WindowsOS】🔍Git寻找分支最近的一次原始切点](<./WindowsOS/【WindowsOS】🔍Git寻找分支最近的一次原始切点.ps1/README.md>) |
+| [【MacOS】🚪双击打开Github.Flutter.command](<./MacOS/【MacOS】🚪双击打开Github.Flutter.command/README.md>) | [【WindowsOS】🚪双击打开Github.Flutter](<./WindowsOS/【WindowsOS】🚪双击打开Github.Flutter.ps1/README.md>) |
+| [【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command](<./MacOS/【MacOS】🚪双击打开Github.JobsOCBaseConfigDemo.command/README.md>) | [【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo](<./WindowsOS/【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo.ps1/README.md>) |
+| [【MacOS】🚪双击打开Github.JobsOCKit.command](<./MacOS/【MacOS】🚪双击打开Github.JobsOCKit.command/README.md>) | [【WindowsOS】🚪双击打开Github.JobsOCKit](<./WindowsOS/【WindowsOS】🚪双击打开Github.JobsOCKit.ps1/README.md>) |
+| [【MacOS】🧭更新引用Git父仓=＞子仓.command](<./MacOS/【MacOS】🧭更新引用Git父仓%3D＞子仓.command/README.md>) | [【WindowsOS】🧭更新引用Git父仓到子仓](<./WindowsOS/【WindowsOS】🧭更新引用Git父仓到子仓.ps1/README.md>) |
+| [【MacOS】🧮双击统计MD文件的有效行数.command](<./MacOS/【MacOS】🧮双击统计MD文件的有效行数.command/README.md>) | [【WindowsOS】🧮双击统计MD文件的有效行数](<./WindowsOS/【WindowsOS】🧮双击统计MD文件的有效行数.ps1/README.md>) |
+| [【MacOS】🧹清理Git子仓运行态记录.command](<./MacOS/【MacOS】🧹清理Git子仓运行态记录.command/README.md>) | [【WindowsOS】🧹清理Git子仓运行态记录](<./WindowsOS/【WindowsOS】🧹清理Git子仓运行态记录.ps1/README.md>) |
+| [【MacOS】🧾更新gitmodules.command](<./MacOS/【MacOS】🧾更新gitmodules.command/README.md>) | [【WindowsOS】🧾更新gitmodules](<./WindowsOS/【WindowsOS】🧾更新gitmodules.ps1/README.md>) |
 
 Windows 使用 PowerShell 5.1+、Git for Windows；不依赖 Homebrew、zsh、osascript。所有入口先显示自述；危险动作精确 `YES`。Windows 分支最新同步、回退、恢复、关联、清理等保留本地审查边界，自动创建提交/推送不作为同步默认动作。动态代理具有独立安装、只读检查和精准恢复，不修改系统代理。具体参数、日志和 Windows 实机验证边界见各包 README。
 

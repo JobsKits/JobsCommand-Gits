@@ -17,6 +17,7 @@
 - [七、流程图](#jobs-toc-heading-8)
 - [八、多平台子模块地址](#submodule-address-rules)
   - [8.1、离线回归验证](#jobs-toc-heading-10)
+- [九、运行规则补充（脚本统一）](#jobs-toc-heading-11)
 
 </details>
 <!-- jobs-toc:end -->
@@ -362,12 +363,16 @@ python3 -B \
 
 测试仅在临时仓使用本地协议、隔离 Git 配置与受控命令替身，覆盖地址与来源日志、根目录和脚本包定位、同步深度切换、多层分支递归与所选子树边界、已有工作区复用、空目录首次克隆、逐仓 `YES` 与外部处理复检、非交互停止、缓存恢复及归属、异名 section、失败返回及无关暂存内容保留；不访问真实远端，不修改业务仓或全局 Git 配置。测试通过仅表示离线回归通过，新电脑真实下载仍须使用更新后的入口验收。
 
-`./tests/test_download_resume.py` 进一步覆盖持久对象缓存跨失败复用、远端 SHA 变化导致完成标记失效、匹配标记跳过当前仓同步但仍检查后代，以及网络重试、认证失败不重试、超时、信号退出、日志脱敏与锁生命周期。上述案例仍使用隔离仓库或受控命令，不以测试成功代替真实网络下载验收。
+`./tests/test_download_resume.py/test_download_resume.py` 进一步覆盖持久对象缓存跨失败复用、远端 SHA 变化导致完成标记失效、匹配标记跳过当前仓同步但仍检查后代，以及网络重试、认证失败不重试、超时、信号退出、日志脱敏与锁生命周期。上述案例仍使用隔离仓库或受控命令，不以测试成功代替真实网络下载验收。
 
-`./tests/test_download_transport_tty.py` 的两项真实隔离 PTY 测试验证认证交互，以及 `Ctrl+C` 中断传输后的进程清理和终端恢复；不使用真实远端或业务仓库。
+`./tests/test_download_transport_tty.py/test_download_transport_tty.py` 的两项真实隔离 PTY 测试验证认证交互，以及 `Ctrl+C` 中断传输后的进程清理和终端恢复；不使用真实远端或业务仓库。
 
-`./tests/test_download_audit.py` 覆盖中断后补齐登记、首次检出失败重跑、索引隐藏内容保护、分支未变时的 tags 同步及空缓存恢复；`./tests/test_download_transport_audit.py` 覆盖远端查询失败时丢弃部分输出、一次查询同时确定分支与 SHA、歧义结果拒绝，以及真实维护入口的锁释放与竞争保护。测试依赖和独立运行命令见 [tests 说明](./tests/README.md)。
+`./tests/test_download_audit.py/test_download_audit.py` 覆盖中断后补齐登记、首次检出失败重跑、索引隐藏内容保护、分支未变时的 tags 同步及空缓存恢复；`./tests/test_download_transport_audit.py/test_download_transport_audit.py` 覆盖远端查询失败时丢弃部分输出、一次查询同时确定分支与 SHA、歧义结果拒绝，以及真实维护入口的锁释放与竞争保护。测试依赖和独立运行命令见 [tests 说明](./tests/README.md)。
 
 **终端配色保护：** 独立运行时，在支持完整保存与恢复配色的交互终端中临时使用黑底白字及统一强调色；正常结束、失败或可捕获中断后恢复进入前的配色，不修改终端全局偏好或 Shell 启动配置。不支持完整保护、无交互终端、`NO_COLOR`、既有纯文本模式和 Sourcetree 场景不切换配色，并沿用纯文本输出约定。强制终止（如 `kill -9`）无法由脚本自身保证恢复，请使用运行时显示的独立恢复入口。
+
+## <span id="jobs-toc-heading-11" data-jobs-toc="v2">九、运行规则补充（脚本统一） <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->
+
+本轮按所选职责准备必要依赖；健康工具直接复用，缺失/损坏才条件获取并刷新当前进程路径后复检。临时网络失败持续重试，Ctrl+C/EOF 或确定的本地、版本、许可错误停止；只读、未选及卸载不因检查触发安装。原生GUI安装、系统权限、目标SDK构建与设备流程尚待对应系统实机验证。
 
 <a id="🔚" href="#前言" style="font-size:17px; color:green; font-weight:bold;">我是有底线的➤点我回到首页</a>

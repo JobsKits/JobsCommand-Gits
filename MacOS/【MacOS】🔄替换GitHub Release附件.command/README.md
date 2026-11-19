@@ -12,7 +12,7 @@
 
 ## 一、<span id="run">运行与依赖</span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
 
-使用 macOS 系统 `/bin/zsh`，依赖 Git、[GitHub CLI](https://cli.github.com/)、[jq](https://jqlang.org/) 与 [fzf](https://github.com/junegunn/fzf)。先完成 `gh auth login --hostname github.com`，账号须有目标仓库写权限。缺少 gh / jq / fzf 时，安装交互及 Homebrew 边界见 [依赖说明](../README.md#environment)。
+使用 macOS 系统 `/bin/zsh`，依赖 Git、[GitHub CLI](https://cli.github.com/)、[jq](https://jqlang.org/) 与 [fzf](https://github.com/junegunn/fzf)。先完成 `gh auth login --hostname github.com`，账号须有目标仓库写权限。缺少 gh / jq / fzf 时，安装交互及 Homebrew 边界见 [本页依赖准备](#required-dependencies)。
 
 双击 `.command`，或在本目录终端运行；分支和 Tag 可同时省略，改为交互选择：
 
@@ -39,5 +39,9 @@
 当前通过静态和隔离回归，以及真实终端 fzf 操作验证；未通过该脚本实际覆盖远端。脚本可以单独复制使用，配套文档建议一并保留。
 
 **终端配色保护：** 独立运行时，在支持完整保存与恢复配色的交互终端中临时使用黑底白字及统一强调色；正常结束、失败或可捕获中断后恢复进入前的配色，不修改终端全局偏好或 Shell 启动配置。不支持完整保护、无交互终端、`NO_COLOR`、既有纯文本模式和 Sourcetree 场景不切换配色，并沿用纯文本输出约定。强制终止（如 `kill -9`）无法由脚本自身保证恢复，请使用运行时显示的独立恢复入口。
+
+## 三、<span id="required-dependencies"><span id="required-dependencies"><span id="required-dependencies">运行规则补充（脚本统一）</span></span></span> <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a>
+
+本轮按所选职责准备必要依赖；健康工具直接复用，缺失/损坏才条件获取并刷新当前进程路径后复检。临时网络失败持续重试，Ctrl+C/EOF 或确定的本地、版本、许可错误停止；只读、未选及卸载不因检查触发安装。原生GUI安装、系统权限、目标SDK构建与设备流程尚待对应系统实机验证。
 
 <a id="🔚" href="#前言" style="font-size:17px; color:green; font-weight:bold;">我是有底线的➤点我回到首页</a>

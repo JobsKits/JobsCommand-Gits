@@ -168,7 +168,7 @@ git submodule status
 配套隔离回归使用 [**Python**](https://www.python.org) 标准库创建临时 Git 仓库，不在真实项目中执行关联。在本文目录运行：
 
 ```shell
-python3 './tests/test_association.py'
+python3 './tests/test_association.py/test_association.py'
 ```
 
 也可以把其它完整关联脚本副本路径作为参数传入。44 项用例覆盖新增登记、多平台 URL、歧义地址回退、脏工作区和索引保护、重复运行、工作树与元数据冲突、只读预览、失败中断和脚本锁清理；测试日志与临时仓库保留在输出显示的系统临时目录。
@@ -176,7 +176,7 @@ python3 './tests/test_association.py'
 以下隔离回归默认核对本仓迁移后的登记与引用修复入口，覆盖独立运行、原始备份、增量保留、section、URL / branch / 扩展字段、暂缺目录，以及真实 origin 与共享登记 URL 的边界。显式传 `--all-copies` 可巡检其它仓库的可用副本；范围外副本的缺失或实现差异须单独处理，不以本仓迁移覆盖它们：
 
 ```shell
-python3 './tests/test_url_writers.py'
+python3 './tests/test_url_writers.py/test_url_writers.py'
 ```
 
 ## <span id="jobs-toc-heading-9" data-jobs-toc="v2">八、常见问题 <a href="#前言" style="font-size:17px; color:green;"><b>🔼</b></a> <a href="#🔚" style="font-size:17px; color:green;"><b>🔽</b></a></span><!-- jobs-toc:heading-end -->

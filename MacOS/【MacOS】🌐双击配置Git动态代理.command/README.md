@@ -116,11 +116,11 @@ Git 动态选路审计另存于当前用户 `Library/Logs/JobsGitNetworkStrategy
 | --- | --- |
 | `./【MacOS】🌐双击配置Git动态代理.command` | 双击配置入口，内嵌 Git 动态网络运行态。 |
 | `./README.md` | 使用、作用范围、恢复与验证说明；不是运行时依赖。 |
-| `./tests/run.zsh` | 隔离用户目录中的配置、检查、重复安装与恢复回归。 |
+| `./tests/【MacOS】run.zsh/【MacOS】run.zsh` | 隔离用户目录中的配置、检查、重复安装与恢复回归。 |
 
 ```zsh
 /bin/zsh -n './【MacOS】🌐双击配置Git动态代理.command'
-/bin/zsh './tests/run.zsh'
+/bin/zsh './tests/【MacOS】run.zsh/【MacOS】run.zsh'
 ```
 
 安装器回归使用专属临时用户目录和真实测试文件，Sourcetree 应用检测及偏好读写由夹具替代，不对用户真实偏好或系统代理执行写操作。隔离测试通过说明安装与恢复边界符合断言，不能代替真实公网仓库和已重启 Sourcetree 的连接验证。

@@ -32,26 +32,26 @@ CMD 入口先关闭继承的延迟展开，保留路径和参数中的 `!`；Pow
 
 | Windows 入口 | 用途 |
 | --- | --- |
-| [【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）](<./【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）/README.md>) | 按登记逐层拉取目标分支最新，恢复本地跟踪分支；默认不提交、不推送。 |
-| [【WindowsOS】⏬双击下载SourceTree效率脚本](<./【WindowsOS】⏬双击下载SourceTree效率脚本/README.md>) | 下载或安全快进 SourceTree 脚本库；保留非空目标与已有修改。 |
-| [【WindowsOS】♻️双击Git 提交回退](<./【WindowsOS】♻️双击Git 提交回退/README.md>) | 选择上一提交、tag 或 reflog，soft/hard 回退；先创建原 HEAD 恢复分支。 |
-| [【WindowsOS】♻️双击恢复误删本地Git已储藏的资料](<./【WindowsOS】♻️双击恢复误删本地Git已储藏的资料/README.md>) | 检查悬空 commit/tree/blob，按选择恢复为独立分支或二进制文件。 |
-| [【WindowsOS】♻️批量Git提交（不含推送）](<./【WindowsOS】♻️批量Git提交（不含推送）/README.md>) | 扫描指定目录内 Git 工作树，后代先于父仓逐仓提交；不推送。 |
-| [【WindowsOS】♻️检测并转换为子Git](<./【WindowsOS】♻️检测并转换为子Git/README.md>) | 扫描独立嵌套 Git，逐仓预检、备份、登记并使用 Git 官方命令归集元数据。 |
-| [【WindowsOS】⚙️双击为私人账户生成 SSH 密钥](<./【WindowsOS】⚙️双击为私人账户生成 SSH 密钥/README.md>) | 终端 fzf 选算法、一次邮箱输入（默认 `295060456@qq.com`，可替换）；生成或复用密钥、备份并配置实际 IdentityFile、加载 agent、登记或提示待完成并验证 GitHub。 |
-| [【WindowsOS】⚙️双击生成Github远程仓库URL](<./【WindowsOS】⚙️双击生成Github远程仓库URL/README.md>) | 通过已登录 GitHub CLI 创建 private/public 远端仓库并打开返回 URL。 |
-| [【WindowsOS】⬆️Git添加子模块](<./【WindowsOS】⬆️Git添加子模块/README.md>) | 备份旧子模块工作树和关联后，按五仓清单重新建立子模块；不自动提交。 |
-| [【WindowsOS】🌐双击配置Git动态代理](<./【WindowsOS】🌐双击配置Git动态代理/README.md>) | 配置当前用户 Git 动态入口；系统代理可达优先、不可达再直连，支持检查与精确恢复。 |
-| [【WindowsOS】🎬上传GitHub视频附件](<./【WindowsOS】🎬上传GitHub视频附件/README.md>) | 上传 MP4/MOV/WEBM 到 GitHub 附件并复制 URL；不修改 README、不提交。 |
-| [【WindowsOS】🔍Git依据提交日志关键字查找](<./【WindowsOS】🔍Git依据提交日志关键字查找/README.md>) | 按字面关键词搜索全部引用的提交说明，选择后展示提交详情。 |
-| [【WindowsOS】🔍Git寻找分支最近的一次原始切点](<./【WindowsOS】🔍Git寻找分支最近的一次原始切点/README.md>) | 选择两个分支，通过 fork-point 或 merge-base 计算最近共同祖先。 |
-| [【WindowsOS】🚪双击打开Github.Flutter](<./【WindowsOS】🚪双击打开Github.Flutter/README.md>) | 使用 Windows 默认浏览器打开 Flutter 官方源码仓库。 |
-| [【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo](<./【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo/README.md>) | 使用 Windows 默认浏览器打开 JobsOCBaseConfigDemo 仓库。 |
-| [【WindowsOS】🚪双击打开Github.JobsOCKit](<./【WindowsOS】🚪双击打开Github.JobsOCKit/README.md>) | 使用 Windows 默认浏览器打开 JobsOCKit 仓库。 |
-| [【WindowsOS】🧭更新引用Git父仓到子仓](<./【WindowsOS】🧭更新引用Git父仓到子仓/README.md>) | 依据磁盘现存子仓对齐登记和 gitlink，备份配置与索引，保留源码与远端。 |
-| [【WindowsOS】🧮双击统计MD文件的有效行数](<./【WindowsOS】🧮双击统计MD文件的有效行数/README.md>) | 安装 pre-commit 有效行数钩子；保留已有钩子，部分暂存文档停止。 |
-| [【WindowsOS】🧹清理Git子仓运行态记录](<./【WindowsOS】🧹清理Git子仓运行态记录/README.md>) | 为登记子仓补运行态忽略规则，并移除运行态索引记录，保留真实文件。 |
-| [【WindowsOS】🧾更新gitmodules](<./【WindowsOS】🧾更新gitmodules/README.md>) | 增量登记现有直属独立子仓，保留已有 URL/branch/扩展字段和 gitlink。 |
+| [【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）](<./【WindowsOS】⏬下载配置当前Git子模块（可向下同步递归）.ps1/README.md>) | 按登记逐层拉取目标分支最新，恢复本地跟踪分支；默认不提交、不推送。 |
+| [【WindowsOS】⏬双击下载SourceTree效率脚本](<./【WindowsOS】⏬双击下载SourceTree效率脚本.ps1/README.md>) | 下载或安全快进 SourceTree 脚本库；保留非空目标与已有修改。 |
+| [【WindowsOS】♻️双击Git 提交回退](<./【WindowsOS】♻️双击Git 提交回退.ps1/README.md>) | 选择上一提交、tag 或 reflog，soft/hard 回退；先创建原 HEAD 恢复分支。 |
+| [【WindowsOS】♻️双击恢复误删本地Git已储藏的资料](<./【WindowsOS】♻️双击恢复误删本地Git已储藏的资料.ps1/README.md>) | 检查悬空 commit/tree/blob，按选择恢复为独立分支或二进制文件。 |
+| [【WindowsOS】♻️批量Git提交（不含推送）](<./【WindowsOS】♻️批量Git提交（不含推送）.ps1/README.md>) | 扫描指定目录内 Git 工作树，后代先于父仓逐仓提交；不推送。 |
+| [【WindowsOS】♻️检测并转换为子Git](<./【WindowsOS】♻️检测并转换为子Git.ps1/README.md>) | 扫描独立嵌套 Git，逐仓预检、备份、登记并使用 Git 官方命令归集元数据。 |
+| [【WindowsOS】⚙️双击为私人账户生成 SSH 密钥](<./【WindowsOS】⚙️双击为私人账户生成 SSH 密钥.ps1/README.md>) | 终端 fzf 选算法、一次邮箱输入（默认 `295060456@qq.com`，可替换）；生成或复用密钥、备份并配置实际 IdentityFile、加载 agent、登记或提示待完成并验证 GitHub。 |
+| [【WindowsOS】⚙️双击生成Github远程仓库URL](<./【WindowsOS】⚙️双击生成Github远程仓库URL.ps1/README.md>) | 通过已登录 GitHub CLI 创建 private/public 远端仓库并打开返回 URL。 |
+| [【WindowsOS】⬆️Git添加子模块](<./【WindowsOS】⬆️Git添加子模块.ps1/README.md>) | 备份旧子模块工作树和关联后，按五仓清单重新建立子模块；不自动提交。 |
+| [【WindowsOS】🌐双击配置Git动态代理](<./【WindowsOS】🌐双击配置Git动态代理.ps1/README.md>) | 配置当前用户 Git 动态入口；系统代理可达优先、不可达再直连，支持检查与精确恢复。 |
+| [【WindowsOS】🎬上传GitHub视频附件](<./【WindowsOS】🎬上传GitHub视频附件.ps1/README.md>) | 上传 MP4/MOV/WEBM 到 GitHub 附件并复制 URL；不修改 README、不提交。 |
+| [【WindowsOS】🔍Git依据提交日志关键字查找](<./【WindowsOS】🔍Git依据提交日志关键字查找.ps1/README.md>) | 按字面关键词搜索全部引用的提交说明，选择后展示提交详情。 |
+| [【WindowsOS】🔍Git寻找分支最近的一次原始切点](<./【WindowsOS】🔍Git寻找分支最近的一次原始切点.ps1/README.md>) | 选择两个分支，通过 fork-point 或 merge-base 计算最近共同祖先。 |
+| [【WindowsOS】🚪双击打开Github.Flutter](<./【WindowsOS】🚪双击打开Github.Flutter.ps1/README.md>) | 使用 Windows 默认浏览器打开 Flutter 官方源码仓库。 |
+| [【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo](<./【WindowsOS】🚪双击打开Github.JobsOCBaseConfigDemo.ps1/README.md>) | 使用 Windows 默认浏览器打开 JobsOCBaseConfigDemo 仓库。 |
+| [【WindowsOS】🚪双击打开Github.JobsOCKit](<./【WindowsOS】🚪双击打开Github.JobsOCKit.ps1/README.md>) | 使用 Windows 默认浏览器打开 JobsOCKit 仓库。 |
+| [【WindowsOS】🧭更新引用Git父仓到子仓](<./【WindowsOS】🧭更新引用Git父仓到子仓.ps1/README.md>) | 依据磁盘现存子仓对齐登记和 gitlink，备份配置与索引，保留源码与远端。 |
+| [【WindowsOS】🧮双击统计MD文件的有效行数](<./【WindowsOS】🧮双击统计MD文件的有效行数.ps1/README.md>) | 安装 pre-commit 有效行数钩子；保留已有钩子，部分暂存文档停止。 |
+| [【WindowsOS】🧹清理Git子仓运行态记录](<./【WindowsOS】🧹清理Git子仓运行态记录.ps1/README.md>) | 为登记子仓补运行态忽略规则，并移除运行态索引记录，保留真实文件。 |
+| [【WindowsOS】🧾更新gitmodules](<./【WindowsOS】🧾更新gitmodules.ps1/README.md>) | 增量登记现有直属独立子仓，保留已有 URL/branch/扩展字段和 gitlink。 |
 
 所有入口先内置说明和回车确认；危险写入要求精确 `YES`。`GitTools.psm1` 只提供公共函数，导入不执行业务；`MarkdownLines.ps1` 由安装后的 Git 钩子调用。`功能映射.json` 是 MacOS/Windows 入口对应关系。动态代理包的 `Scripts/` 自包含，不依赖另一个仓库。
 

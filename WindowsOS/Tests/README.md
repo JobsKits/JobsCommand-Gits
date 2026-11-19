@@ -26,9 +26,9 @@
 
 ```powershell
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
-  -File '.\Regression.ps1'
+  -File '.\Regression.ps1/Regression.ps1'
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
-  -File '.\GitProxyConfigurator.Tests.ps1'
+  -File '.\GitProxyConfigurator.Tests.ps1/GitProxyConfigurator.Tests.ps1'
 ```
 
 - `Regression.ps1`：48 项断言，覆盖 HTTPS/SCP/带端口 SSH 相对 URL、Windows 非法路径、非 UTF-8 终端下的中文 Git 根目录、成功与失败后恢复原终端编码、缺命令停止、预览无写入、增量关联与现有字段/gitlink保留、官方元数据归集、分支最新与游离恢复、首次下载、普通文件跟踪冲突、独有提交及缺分支保护，以及五仓重建、原始 Git 目录与 HEAD/config 字节备份，以及游离入口尊重父仓显式分支。映射按 UTF-8 读取，只检查备份顶层目标，避免无关深层遍历。测试临时目录保留并在末尾打印，便于排查。
